@@ -1,0 +1,10 @@
+{
+    "baseAddress": "http://wasmiot-orchestrator:3000",
+    "device": "/file/device",
+    "deleteAllDevices": "???????",
+    "resetDeviceDiscovery": "/file/device/discovery/reset",
+    "module": "/file/module",
+    "deleteAllModules": "?????????",
+    "manifest": "/file/manifest",
+    "deleteAllManifests": "????????"
+}
