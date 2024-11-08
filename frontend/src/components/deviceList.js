@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import Accordion from '@mui/material/Accordion';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -62,7 +64,18 @@ function DeviceList({devices, setDevices}) {
                 {device.name}
               </AccordionSummary>
               <AccordionDetails>
-                TODO: Device details
+                <Box component="fieldset" sx={{ display: 'flex', alignItems: 'left', mb: 2, gap: 2 }}>
+                  <Typography component="legend">Communication</Typography>
+                  <pre>{JSON.stringify(device.communication, null, 2) }</pre>
+                </Box>
+                <Box component="fieldset" sx={{ display: 'flex', alignItems: 'left', mb: 2, gap: 2 }}>
+                  <Typography component="legend">Description</Typography>
+                  <pre>{JSON.stringify(device.description, null, 2) }</pre>
+                </Box>
+                <Box component="fieldset" sx={{ display: 'flex', alignItems: 'left', mb: 2, gap: 2 }}>
+                  <Typography component="legend">Health</Typography>
+                  <pre>{JSON.stringify(device.health, null, 2) }</pre>
+                </Box>
                 <br/>
               </AccordionDetails>
           </Accordion>

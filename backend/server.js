@@ -15,8 +15,6 @@ app.use(express.json());
 // Middleware for handling multipart/form-data
 const upload = multer();
 
-// Proxy requests to actual server
-
 // DEVICES
 
 app.get('/file/device', async (req, res) => {
@@ -110,9 +108,6 @@ app.post('/file/module/:id/upload', async (req, res) => {
           console.error('Error parsing form data:', err);
           return res.status(500).json({ error: 'Error parsing form data' });
       }
-
-      console.log('Received fields:', fields);
-      console.log('Received files:', files); // Log the files received
 
       // Create a new FormData instance to forward data
       const formData = new FormData();
@@ -240,20 +235,21 @@ app.post('/file/manifest/:id', async (req, res) => {
   }
 });
 
-app.post('/execute/:manifestId', async (req, res) => {
+app.post('/execute/:manifestId',upload.none(), async (req, res) => {
   const { manifestId } = req.params;
+  const payload = req.body;
 
   try {
-    // Forward the request to the execution endpoint as JSON
-    console.log(req.body);
-    const executionResponse = await axios.post(`http://localhost:3000/execute/${manifestId}`, req.body, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const executionResponse = await axios.post(
+      `http://localhost:3000/execute/${manifestId}`, 
+      req.body, 
+      { headers: { 'Content-Type': 'application/json' }}
+    );
 
     // Return the execution response back to the client
     res.json({ result: executionResponse.data });
   } catch (error) {
-    console.error(`Error executing manifest with id: ${manifestId}`, error);
+    // console.error(`Error executing manifest with id: ${manifestId}`, error);
     res.status(500).json({ error: 'Error executing manifest' });
   }
 });

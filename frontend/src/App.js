@@ -19,7 +19,10 @@ import ManifestList from './components/manifestList';
 import ManifestUpdate from './components/manifestUpdate';
 import Deployment from './components/deployment';
 import Execution from './components/execution';
+import MindMap from './components/MindMap';
 import axios from 'axios';
+
+import './index.css';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -61,6 +64,8 @@ export default function App() {
 
   return (
     <>
+    {/*TODO: Potential way to add background images: https://github.com/xyflow/xyflow/discussions/1773*/}
+    {/* <MindMap></MindMap> */}
       <Box sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={value} onChange={handleChange} aria-label="basic tabs">
@@ -89,6 +94,8 @@ export default function App() {
           <DeleteAllModulesButton />
           <br/>
           <DeleteAllManifestsButton />
+          <br/>
+        <Divider textAlign="left"><b>Device Map</b></Divider>
         </CustomTabPanel>
 
         <CustomTabPanel value={value} index={1}>

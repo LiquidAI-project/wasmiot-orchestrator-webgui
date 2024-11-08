@@ -11,9 +11,11 @@ function Execution({ manifests }) {
     const [error, setError] = useState(null);
     const [parameters, setParameters] = useState([]);
     const [formValues, setFormValues] = useState({});
+    const [executionResult, setExecutionResult] = useState(null);
 
     // Filter manifests to show only active ones
-    const activeManifests = manifests.filter(manifest => manifest.active);
+    // const activeManifests = manifests.filter(manifest => manifest.active);
+    const activeManifests = manifests.filter(manifest => manifest);
 
     // Update form fields when a new manifest is selected
     const handleManifestChange = (event) => {
@@ -71,8 +73,9 @@ function Execution({ manifests }) {
         }
     
         try {
-            const response = await axios.post(`http://localhost:5001/execute/${selectedManifestId}`, formData);
+            const response = await axios.post(`http://localhost:5001/execute/${selectedManifestId}`, formData, {headers:{"Content-Type":"multipart/form-data"}});
             console.log("Execution successful:", response.data);
+            setExecutionResult(response.data.result);
             setIsSubmitted(true);
             setError(null);
         } catch (error) {
@@ -122,7 +125,7 @@ function Execution({ manifests }) {
                 <Alert severity="success" sx={{ marginTop: 2 }}>
                     Successfully executed manifest "{activeManifests.find(m => m._id === selectedManifestId)?.name}"!
                     <br />
-                    Result: {JSON.stringify(formValues, null, 2)}
+                    Result: {JSON.stringify(executionResult, null, 2)}
                 </Alert>
             )}
             {error && <Alert severity="error" sx={{ marginTop: 2 }}>{error}</Alert>}
