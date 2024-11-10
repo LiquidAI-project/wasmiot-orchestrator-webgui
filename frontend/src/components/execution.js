@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Select, FormControl, InputLabel, MenuItem, Button, Alert, Box, TextField } from '@mui/material';
 import axios from 'axios';
 import FormData from 'form-data';
+import {fetchManifests} from '../utils';
 
-function Execution({ manifests }) {
+function Execution({ manifests, setManifests, module, setModules }) {
     const [selectedManifestId, setSelectedManifestId] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState(null);
@@ -84,7 +85,10 @@ function Execution({ manifests }) {
             setIsSubmitted(false);
         }
     };
-    
+
+    useEffect(() => {
+        fetchManifests(setManifests);
+    }, []); 
 
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>

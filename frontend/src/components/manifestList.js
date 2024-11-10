@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -7,47 +7,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
+import {fetchManifests, handleManifestDelete} from '../utils';
 
 function ManifestList({
     manifests, setManifests, devices, setDevices, modules, setModules
 }) {
-    // Fetch the list of manifests
-    const fetchManifests = async () => {
-        try {
-            const response = await axios.get('http://localhost:5001/file/manifest');
-            const newManifests = response.data; 
-            updateManifestsList(newManifests);
-        } catch (error) {
-            console.error('Error fetching manifests:', error);
-        }
-    };
-
-    // Update the list of manifests
-    const updateManifestsList = (newManifests) => {
-        setManifests((prevManifests) => {
-            const prevManifestIds = new Set(prevManifests.map((manifest) => manifest._id));
-            const newManifestIds = new Set(newManifests.map((manifest) => manifest._id));
-            const updatedManifests = prevManifests.filter((manifest) => newManifestIds.has(manifest._id));
-            newManifests.forEach((newManifest) => {
-                if (!prevManifestIds.has(newManifest._id)) {
-                    updatedManifests.push(newManifest);
-                }
-            });
-            return updatedManifests;
-        });
-    };
-
-    // Function to handle deletion of a manifest
-    const handleManifestDelete = async (manifestId) => {
-        try {
-            const response = await axios.delete(`http://localhost:5001/file/manifest/${manifestId}`);
-            console.log(`Deleted manifest with id: ${manifestId}`, response.data);
-        } catch (error) {
-            console.error(`Error deleting manifest with id: ${manifestId}`, error);
-        }
-        fetchManifests();
-    };
 
     // Helper function to get the device name by ID
     const getDeviceName = (deviceId) => {
@@ -71,7 +35,7 @@ function ManifestList({
     };
 
     useEffect(() => {
-        fetchManifests();
+        fetchManifests(setManifests);
     }, []);
 
     return (

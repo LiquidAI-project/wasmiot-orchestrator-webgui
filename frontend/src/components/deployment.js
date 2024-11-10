@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Select, FormControl, InputLabel, MenuItem, Button, Alert, Box } from '@mui/material';
 import axios from 'axios';
 
@@ -35,6 +35,36 @@ function Deployment({ manifests, setManifests }) {
             setIsSubmitted(false); // Reset submission status on error
         }
     };
+
+    // Update the list of manifests
+    const updateManifestsList = (newManifests) => {
+        setManifests((prevManifests) => {
+            const prevManifestIds = new Set(prevManifests.map((manifest) => manifest._id));
+            const newManifestIds = new Set(newManifests.map((manifest) => manifest._id));
+            const updatedManifests = prevManifests.filter((manifest) => newManifestIds.has(manifest._id));
+            newManifests.forEach((newManifest) => {
+                if (!prevManifestIds.has(newManifest._id)) {
+                    updatedManifests.push(newManifest);
+                }
+            });
+            return updatedManifests;
+        });
+    };
+
+    // Fetch the list of manifests
+    const fetchManifests = async () => {
+        try {
+            const response = await axios.get('http://localhost:5001/file/manifest');
+            const newManifests = response.data; 
+            updateManifestsList(newManifests);
+        } catch (error) {
+            console.error('Error fetching manifests:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchManifests();
+    }, []);
 
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
