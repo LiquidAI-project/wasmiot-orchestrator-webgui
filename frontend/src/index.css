@@ -1,4 +1,19 @@
+html,
 body {
+  margin: 0;
+  font-family: sans-serif;
+}
+ 
+#app {
+  width: 100vw;
+  height: 100vh;
+  background-image: url("https://www.drawio.com/assets/img/blog/floorplan-apartment-ground-floor.png");
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* body {
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -18,4 +33,4 @@ code {
 #chart {
   width: 100vw;
   height: 100vh;
-}
+} */
