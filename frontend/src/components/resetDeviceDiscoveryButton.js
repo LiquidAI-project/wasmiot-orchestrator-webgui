@@ -24,8 +24,8 @@ function ResetDeviceDiscoveryButton() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Button
                 onClick={handleResetDeviceDiscovery}
-                variant="contained"
-                color="primary"
+                variant="outlined"
+                color="error"
                 sx={{ width: 400 }}
             >
                 Reset Device Discovery

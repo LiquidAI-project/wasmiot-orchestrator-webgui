@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { ReactFlow, Controls, Background, applyNodeChanges, applyEdgeChanges, } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { fetchDevices } from '../utils';
 
 
 function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
@@ -66,6 +67,7 @@ function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
                         id: `1-${i + 1}`, 
                         source: `1`, 
                         target: `${i+1}`,
+                        type: "straight"
                         // label: `From 1 to ${i+1}`, 
                         // type: 'step' 
                     }
@@ -90,8 +92,17 @@ function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
         }
     }, [devices]);
 
+
+
+    // Poll devices every 30 seconds
+    useEffect(() => {
+        fetchDevices(setDevices);
+        const intervalId = setInterval(function() {fetchDevices(setDevices)}, 30000);
+        return () => clearInterval(intervalId);
+    }, []);
+
     return (
-        <div style={{ height: '40vh' }} id="app">
+        <div id="app">
             <ReactFlow  nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} fitView>
                 <Background />
                 <Controls />

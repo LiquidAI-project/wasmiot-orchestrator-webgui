@@ -24,8 +24,8 @@ function DeleteAllDevicesButton() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Button
                 onClick={handleDeleteDevices}
-                variant="contained"
-                color="primary"
+                variant="outlined"
+                color="error"
                 sx={{ width: 400 }}
             >
                 Delete All Devices

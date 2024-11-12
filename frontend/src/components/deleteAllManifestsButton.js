@@ -24,8 +24,8 @@ function DeleteAllManifestsButton() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Button
                 onClick={handleDeleteManifests}
-                variant="contained"
-                color="primary"
+                variant="outlined"
+                color="error"
                 sx={{ width: 400 }}
             >
                 Delete All Manifests

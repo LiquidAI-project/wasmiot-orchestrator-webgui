@@ -37,3 +37,29 @@ export const handleManifestDelete = async (manifestId) => {
     fetchManifests();
 };
 
+// Function to fetch devices from the backend periodically
+export const fetchDevices = async (setDevices) => {
+    try {
+        const response = await axios.get('http://localhost:5001/file/device');
+        const newDevices = response.data; // Assuming the data is a list of device objects with name and _id
+        updateDevicesList(newDevices, setDevices);
+    } catch (error) {
+        console.error('Error fetching devices:', error);
+    }
+};
+
+// Update the list of devices
+export const updateDevicesList = (newDevices, setDevices) => {
+    setDevices((prevDevices) => {
+        const prevDeviceIds = new Set(prevDevices.map((device) => device._id));
+        const newDeviceIds = new Set(newDevices.map((device) => device._id));
+        const updatedDevices = prevDevices.filter((device) => newDeviceIds.has(device._id));
+        newDevices.forEach((newDevice) => {
+            if (!prevDeviceIds.has(newDevice._id)) {
+                updatedDevices.push(newDevice);
+            }
+        });
+        return updatedDevices;
+    });
+};
+

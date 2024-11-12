@@ -20,9 +20,22 @@ import ManifestUpdate from './components/manifestUpdate';
 import Deployment from './components/deployment';
 import Execution from './components/execution';
 import DeviceMap from './components/deviceMap';
+import Grid from '@mui/material/Grid2';
 import axios from 'axios';
 import './index.css';
+import Paper from '@mui/material/Paper';
+import { styled } from '@mui/material/styles';
 
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+  ...theme.applyStyles('dark', {
+    backgroundColor: '#1A2027',
+  }),
+}));
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -72,8 +85,6 @@ export default function App() {
 
   return (
     <>
-    {/*TODO: Potential way to add background images: https://github.com/xyflow/xyflow/discussions/1773*/}
-    {/* <MindMap></MindMap> */}
       <Box sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={value} onChange={handleChange} aria-label="basic tabs">
@@ -86,7 +97,25 @@ export default function App() {
         </Box>
 
         <CustomTabPanel value={value} index={0}>
-        <Divider textAlign="left"><b>List of active devices</b></Divider>
+
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 6, md: 2 }}>
+            <Divider textAlign="center">Actions</Divider> <br/>
+            <ResetDeviceDiscoveryButton /> <br/>
+            <DeleteAllDevicesButton /> <br/>
+            <DeleteAllModulesButton /> <br/>
+            <DeleteAllManifestsButton /> <br/>
+          </Grid>
+          <Grid size={{ xs: 6, md: 10 }}>
+            <DeviceMap 
+              nodes={nodes} setNodes={setNodes} 
+              edges={edges} setEdges={setEdges}
+              devices={devices} setDevices={setDevices}
+            />
+          </Grid>
+        </Grid>
+
+        {/* <Divider textAlign="left"><b>List of active devices</b></Divider>
           <br/>
           <br/>
           <DeviceList devices={devices} setDevices={setDevices}/>
@@ -103,13 +132,8 @@ export default function App() {
           <br/>
           <DeleteAllManifestsButton />
           <br/>
-        <Divider textAlign="left"><b>Device Map</b></Divider>
+        <Divider textAlign="left"><b>Device Map</b></Divider> */}
 
-        <DeviceMap 
-          nodes={nodes} setNodes={setNodes} 
-          edges={edges} setEdges={setEdges}
-          devices={devices} setDevices={setDevices}
-        />
 
         </CustomTabPanel>
 
