@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Select, FormControl, InputLabel, MenuItem, Button, Alert, Box } from '@mui/material';
 import axios from 'axios';
+import PublishIcon from '@mui/icons-material/Publish';
+
 
 function Deployment({ manifests, setManifests }) {
     const [selectedManifestId, setSelectedManifestId] = useState('');
@@ -83,7 +85,7 @@ function Deployment({ manifests, setManifests }) {
                 </Select>
             </FormControl>
 
-            <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
+            <Button type="submit" endIcon={<PublishIcon />} fullWidth variant="outlined" color="primary" sx={{ marginTop: 2 }}>
                 Deploy
             </Button>
 

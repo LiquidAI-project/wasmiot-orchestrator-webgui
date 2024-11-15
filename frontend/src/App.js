@@ -28,6 +28,8 @@ import { styled } from '@mui/material/styles';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import OpacitySlider from './components/opacitySlider'
+import BackgroundUpdater from './components/backgroundUpdater'
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -73,24 +75,13 @@ export default function App() {
   const [moduleFile, setModuleFile] = useState(null); // Module file to be uploaded
   const [moduleId, setModuleId] = useState(''); // Module id of the recently uploaded module
   const [error, setError] = useState(''); // Holds the latest error
-  const [selectedDeployment, setSelectedDeployment] = useState(null);
+  const [selectedDeployment, setSelectedDeployment] = useState(null); // Currently selected deployment to be executed (used for the visualization)
 
   // Handles changing a tab
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  // Handles enabling/disabling background
-  const enableBackground = (event) => {
-    if(event.target.checked){
-      document.getElementById("app").style.backgroundImage='url("https://www.drawio.com/assets/img/blog/floorplan-apartment-ground-floor.png")';
-      document.getElementById("app").style.backgroundSize='contain';
-      console.log("Enabling background");
-    } else {
-      document.getElementById("app").style.backgroundImage="none";
-      console.log("Disabling background");
-    }
-  };
 
   return (
     <>
@@ -107,23 +98,30 @@ export default function App() {
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, md: 4 }}>
-            <Divider textAlign="center">View controls</Divider>
-              <FormGroup>
-                <FormControlLabel control={<Checkbox onChange={enableBackground} />} label="Show background" />
-              </FormGroup>
-            <Divider textAlign="center">Deploy</Divider>
-            <Deployment manifests={manifests} setManifests={setManifests}/>
-            <Divider textAlign="center">Execute</Divider>
-            <Execution 
-              manifests={manifests} setManifests={setManifests} 
-              module={modules} setModules={setModules} 
-              selectedDeployment={setSelectedDeployment} setSelectedDeployment={setSelectedDeployment}
-            />
-            <Divider textAlign="center">Actions</Divider> <br/>
-            <ResetDeviceDiscoveryButton /> <br/>
-            <DeleteAllDevicesButton /> <br/>
-            <DeleteAllModulesButton /> <br/>
-            <DeleteAllManifestsButton /> <br/>
+            <Box
+              sx={{
+                maxHeight: 'calc(100vh - 150px)', // Adjust the height as needed
+                overflowY: 'auto', // Enables scrolling when content overflows
+                paddingRight: 1, // Optional: To prevent scroll bar overlap
+              }}
+            >
+              <Divider textAlign="center"><b>Deploy</b></Divider>
+              <Deployment manifests={manifests} setManifests={setManifests}/>
+              <Divider textAlign="center"><b>Execute</b></Divider>
+              <Execution 
+                manifests={manifests} setManifests={setManifests} 
+                module={modules} setModules={setModules} 
+                selectedDeployment={setSelectedDeployment} setSelectedDeployment={setSelectedDeployment}
+              />
+              <Divider textAlign="center"><b>View controls</b></Divider>
+              <OpacitySlider />
+              <BackgroundUpdater/>
+              <Divider textAlign="center"><b>Actions</b></Divider>
+              <ResetDeviceDiscoveryButton />
+              <DeleteAllDevicesButton />
+              <DeleteAllModulesButton />
+              <DeleteAllManifestsButton />
+            </Box>
           </Grid>
           <Grid size={{ xs: 6, md: 8 }}>
             <DeviceMap 
@@ -136,7 +134,7 @@ export default function App() {
 
         </CustomTabPanel>
 
-        <CustomTabPanel value={value} index={1}>
+        <CustomTabPanel value={value} index={1} style={{maxWidth: "800px"}}>
           <Divider textAlign="left"><b>Upload new module:</b></Divider>
           <ModuleCreation 
               modules={modules} setModules={setModules}
@@ -162,7 +160,7 @@ export default function App() {
 
         </CustomTabPanel>
 
-        <CustomTabPanel value={value} index={2}>
+        <CustomTabPanel value={value} index={2} style={{maxWidth: "800px"}}>
           <br/>
           <br/>
           <Divider textAlign="left"><b>Create new manifest:</b></Divider>

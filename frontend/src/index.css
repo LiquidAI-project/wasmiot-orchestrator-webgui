@@ -7,9 +7,25 @@ body {
 #app {
   width: 100%;
   height: 80vh;
-  background-image: none;
-  background-size: "contain";
+  position: relative;
+  /* background-image: none; */
+  /* background-size: "contain"; */
+  /* background-position: center; */
+  /* background-repeat: no-repeat; */
+}
+
+#app::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80vh;
+  background-image: var(--background-image-url, url("https://puheviestinnanpaivat2014.wordpress.com/wp-content/uploads/2014/03/agora-1-krs-aula-auditorio-2-alfa.jpg"));
+  background-size: contain;
   background-position: center;
+  opacity: var(--bg-opacity, 0); /* Default opacity is 0 */
+  z-index: -1; 
   background-repeat: no-repeat;
 }
 
@@ -22,7 +38,7 @@ body {
   border: 1px solid #000000;
   padding: 5px;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.76);
+  background: rgb(255, 255, 255);
 }
  
 .node-with-modal label {
@@ -41,25 +57,3 @@ body {
 .floatingedges .react-flow__handle {
   opacity: 0;
 }
-
-/* body {
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  width: 100%;
-  max-width: 1200px;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
-
-#chart {
-  width: 100vw;
-  height: 100vh;
-} */

@@ -21,12 +21,12 @@ function DeleteAllManifestsButton() {
     };
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
             <Button
                 onClick={handleDeleteManifests}
                 variant="outlined"
                 color="error"
-                sx={{ width: 400 }}
+                fullWidth
             >
                 Delete All Manifests
             </Button>

@@ -21,12 +21,12 @@ function DeleteAllModulesButton() {
     };
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
             <Button
                 onClick={handleDeleteModules}
                 variant="outlined"
                 color="error"
-                sx={{ width: 400 }}
+                fullWidth
             >
                 Delete All Modules
             </Button>

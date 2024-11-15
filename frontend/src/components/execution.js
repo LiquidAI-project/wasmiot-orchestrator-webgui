@@ -1,10 +1,11 @@
-// Importing necessary dependencies for form data handling
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Select, FormControl, InputLabel, MenuItem, Button, Alert, Box, TextField } from '@mui/material';
 import axios from 'axios';
 import FormData from 'form-data';
 import {fetchManifests} from '../utils';
+import SendIcon from '@mui/icons-material/Send';
+
 
 function Execution({ manifests, setManifests, module, setModules, selectedDeployment, setSelectedDeployment }) {
     const [selectedManifestId, setSelectedManifestId] = useState('');
@@ -123,7 +124,7 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
                 />
             ))}
 
-            <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
+            <Button type="submit" endIcon={<SendIcon />} fullWidth variant="outlined" color="primary" sx={{ marginTop: 2 }}>
                 Execute
             </Button>
 

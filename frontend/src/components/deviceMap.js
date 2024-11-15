@@ -94,7 +94,6 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
                 y = 250 * Math.sin(radians) + center.y;
             }
 
-            console.log(newDevices[i]);
             newNodes.push(
                 {
                     id: newDevices[i]._id,
@@ -110,12 +109,85 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
                     },
                     position: { x: x, y: y },
                     type: 'nodeWithModal',
-                    // type: 'input',
                 },
             );
 
-
         }
+
+        // Add extra grouping examples
+        newNodes.push(
+            {
+                id: 'highrisk',
+                data: { label: 'High Risk' },
+                position: { x: 400, y: -200 },
+                style: { 
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    width: 300, 
+                    height: 300 
+                },
+            },
+            {
+                id: "high example 1",
+                data: { 
+                    label: "Risky device 1",
+                    deviceDetails: {
+                        _id: "",
+                        name: "",
+                        communication: {},
+                        description: {},
+                        health: {}
+                    },
+                },
+                position: { x: 10, y: 50 },
+                type: 'nodeWithModal',
+                parentId: 'highrisk',
+                extent: 'parent',
+            },
+            {
+                id: "high example 2",
+                data: { 
+                    label: "Risky device 2",
+                    deviceDetails: {
+                        _id: "",
+                        name: "",
+                        communication: {},
+                        description: {},
+                        health: {}
+                    },
+                },
+                position: { x: 10, y: 100 },
+                type: 'nodeWithModal',
+                parentId: 'highrisk',
+                extent: 'parent',
+            },
+            {
+                id: 'lowrisk',
+                data: { label: 'Low Risk' },
+                position: { x: 400, y: 200 },
+                style: { 
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    width: 300, 
+                    height: 300 
+                },
+            },
+            {
+                id: "low example 1",
+                data: { 
+                    label: "Normal device 1",
+                    deviceDetails: {
+                        _id: "",
+                        name: "",
+                        communication: {},
+                        description: {},
+                        health: {}
+                    },
+                },
+                position: { x: 10, y: 50 },
+                type: 'nodeWithModal',
+                parentId: 'lowrisk',
+                extent: 'parent',
+            },
+        );
 
         let updateNeeded = false;
         if (newNodes.length !== nodes.length) {
@@ -131,10 +203,8 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
         }
         if (updateNeeded) {
             setNodes(newNodes);
-            // setEdges(newEdges);
         }
     }, [devices]);
-
 
 
     // Poll devices every 30 seconds
@@ -170,11 +240,11 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
                     source: sourceId, 
                     target: targetId,
                     type: "floating",
-                    markerEnd: {
-                        type: MarkerType.Arrow,
-                    },
-                    animated: true
-                    // style: { stroke: "black", strokeWidth: 1 }
+                    // markerEnd: {
+                    //     type: MarkerType.Arrow,
+                    // },
+                    animated: true,
+                    style: { stroke: "black", strokeWidth: 1 }
                     // label: `From 1 to ${i+1}`, 
                     // type: 'step' 
                 }
@@ -197,6 +267,7 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
                 connectionLineComponent={FloatingConnectionLine}
                 fitView
             >
+                {/* <Background style = { { backgroundImage: 'url("https://puheviestinnanpaivat2014.wordpress.com/wp-content/uploads/2014/03/agora-1-krs-aula-auditorio-2-alfa.jpg")'}}/> */}
                 <Background />
                 <Controls />
             </ReactFlow>
