@@ -6,7 +6,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import {fetchManifests} from '../utils';
 
-function Execution({ manifests, setManifests, module, setModules }) {
+function Execution({ manifests, setManifests, module, setModules, selectedDeployment, setSelectedDeployment }) {
     const [selectedManifestId, setSelectedManifestId] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState(null);
@@ -22,6 +22,8 @@ function Execution({ manifests, setManifests, module, setModules }) {
     const handleManifestChange = (event) => {
         const manifestId = event.target.value;
         setSelectedManifestId(manifestId);
+        const result = manifests.find(manifest => manifest._id === manifestId);
+        setSelectedDeployment(result);
         setIsSubmitted(false);
         setError(null);
 
@@ -93,7 +95,7 @@ function Execution({ manifests, setManifests, module, setModules }) {
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
             <FormControl fullWidth margin="normal">
-                <InputLabel id="manifest-select-label">Select Manifest to Execute</InputLabel>
+                <InputLabel id="manifest-select-label">Select Deployment to Execute</InputLabel>
                 <Select
                     labelId="manifest-select-label"
                     value={selectedManifestId}

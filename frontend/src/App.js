@@ -25,6 +25,10 @@ import axios from 'axios';
 import './index.css';
 import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -69,19 +73,24 @@ export default function App() {
   const [moduleFile, setModuleFile] = useState(null); // Module file to be uploaded
   const [moduleId, setModuleId] = useState(''); // Module id of the recently uploaded module
   const [error, setError] = useState(''); // Holds the latest error
-  const [nodes, setNodes] = useState([]); // Holds the nodes (device names)
-  const [edges, setEdges] = useState([]); // Holds the connections between nodes (devices)
+  const [selectedDeployment, setSelectedDeployment] = useState(null);
 
   // Handles changing a tab
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-
-
-
-
-
+  // Handles enabling/disabling background
+  const enableBackground = (event) => {
+    if(event.target.checked){
+      document.getElementById("app").style.backgroundImage='url("https://www.drawio.com/assets/img/blog/floorplan-apartment-ground-floor.png")';
+      document.getElementById("app").style.backgroundSize='contain';
+      console.log("Enabling background");
+    } else {
+      document.getElementById("app").style.backgroundImage="none";
+      console.log("Disabling background");
+    }
+  };
 
   return (
     <>
@@ -91,48 +100,38 @@ export default function App() {
             <Tab label="Devices" id="simple-tab-0" aria-controls="simple-tabpanel-0"/>
             <Tab label="Modules" id="simple-tab-1" aria-controls="simple-tabpanel-1"/>
             <Tab label="Manifests" id="simple-tab-2" aria-controls="simple-tabpanel-2"/>
-            <Tab label="Deployment" id="simple-tab-3" aria-controls="simple-tabpanel-3"/>
-            <Tab label="Execution" id="simple-tab-4" aria-controls="simple-tabpanel-4"/>
           </Tabs>
         </Box>
 
         <CustomTabPanel value={value} index={0}>
 
         <Grid container spacing={2}>
-          <Grid size={{ xs: 6, md: 2 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
+            <Divider textAlign="center">View controls</Divider>
+              <FormGroup>
+                <FormControlLabel control={<Checkbox onChange={enableBackground} />} label="Show background" />
+              </FormGroup>
+            <Divider textAlign="center">Deploy</Divider>
+            <Deployment manifests={manifests} setManifests={setManifests}/>
+            <Divider textAlign="center">Execute</Divider>
+            <Execution 
+              manifests={manifests} setManifests={setManifests} 
+              module={modules} setModules={setModules} 
+              selectedDeployment={setSelectedDeployment} setSelectedDeployment={setSelectedDeployment}
+            />
             <Divider textAlign="center">Actions</Divider> <br/>
             <ResetDeviceDiscoveryButton /> <br/>
             <DeleteAllDevicesButton /> <br/>
             <DeleteAllModulesButton /> <br/>
             <DeleteAllManifestsButton /> <br/>
           </Grid>
-          <Grid size={{ xs: 6, md: 10 }}>
+          <Grid size={{ xs: 6, md: 8 }}>
             <DeviceMap 
-              nodes={nodes} setNodes={setNodes} 
-              edges={edges} setEdges={setEdges}
               devices={devices} setDevices={setDevices}
+              selectedDeployment={selectedDeployment} setSelectedDeployment={setSelectedDeployment}
             />
           </Grid>
         </Grid>
-
-        {/* <Divider textAlign="left"><b>List of active devices</b></Divider>
-          <br/>
-          <br/>
-          <DeviceList devices={devices} setDevices={setDevices}/>
-          <br/>
-          <br/>
-          <Divider textAlign="left"><b>General management:</b></Divider>
-          <br/>
-          <br/>
-          <ResetDeviceDiscoveryButton />
-          <br/>
-          <DeleteAllDevicesButton />
-          <br/>
-          <DeleteAllModulesButton />
-          <br/>
-          <DeleteAllManifestsButton />
-          <br/>
-        <Divider textAlign="left"><b>Device Map</b></Divider> */}
 
 
         </CustomTabPanel>
@@ -179,23 +178,6 @@ export default function App() {
 
         </CustomTabPanel>
 
-        <CustomTabPanel value={value} index={3}>
-          <br/>
-          <br/>
-          <Divider textAlign="left"><b>Deploy a manifest</b></Divider>
-          <br/>
-          <br/>
-          <Deployment manifests={manifests} setManifests={setManifests}/>
-        </CustomTabPanel>
-
-        <CustomTabPanel value={value} index={4}>
-          <br/>
-          <br/>
-          <Divider textAlign="left"><b>Execute a manifest</b></Divider>
-          <br/>
-          <br/>
-          <Execution manifests={manifests} setManifests={setManifests} module={modules} setModules={setModules}/>
-        </CustomTabPanel>
       </Box>
     </>
   );

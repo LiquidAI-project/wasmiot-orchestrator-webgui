@@ -1,19 +1,50 @@
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Controls, Background, applyNodeChanges, applyEdgeChanges, } from '@xyflow/react';
+import { 
+    useState, 
+    useEffect, 
+    useCallback 
+} from 'react';
+import { 
+    ReactFlow, 
+    Controls, 
+    Background, 
+    applyNodeChanges, 
+    applyEdgeChanges, 
+    addEdge, 
+    useNodesState, 
+    useEdgesState, 
+    MarkerType, 
+    Position
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { fetchDevices } from '../utils';
+import { fetchDevices, createNodesAndEdges } from '../utils';
+import NodeWithModal from './nodeWithModal';
+import FloatingEdge from './floatingEdge';
+import FloatingConnectionLine from './floatingConnectionLine';
 
 
-function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
-    const onNodesChange = useCallback(
-        (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-        [],
+function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeployment }) {
+    const nodeTypes = { nodeWithModal: NodeWithModal };
+    const edgeTypes = { floating: FloatingEdge };
+
+    const [nodes, setNodes, onNodesChange] = useNodesState([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [orchestratorId, setOrchestratorId] = useState("");
+    const onConnect = useCallback(
+      (params) =>
+        setEdges((eds) =>
+          addEdge(
+            {
+              ...params,
+              type: 'floating',
+              markerEnd: { type: MarkerType.Arrow },
+            },
+            eds,
+          ),
+        ),
+      [setEdges],
     );
-    const onEdgesChange = useCallback(
-        (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-        [],
-    );
+    
 
     // Update nodes/edges on the devices map every time there are changes to devices
     useEffect(() => {
@@ -26,12 +57,17 @@ function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
                 "name": devices[i].name,
                 "ip": devices[i].communication.addresses[0], // Can they have multiple addresses?
                 "port": devices[i].communication.port,
+                "communication": devices[i].communication,
+                "description": devices[i].description,
+                "health": devices[i].health
             };
             if (devices[i].name !== "orchestrator"){
                 newDevice.cpuName = devices[i].description.platform.cpu.humanReadableName
                 newDevice.cpuSpeed = `${(devices[i].description.platform.cpu.clockSpeed.Hz / 1000000000).toFixed(2)} Ghz`
                 newDevice.cpuUsage = `${(devices[i].health.report.cpuUsage).toFixed(2)}`
                 newDevice.memory = `${(devices[i].description.platform.memory.bytes / 1000000000).toFixed(2)} Gbs`
+            } else {
+                setOrchestratorId(devices[i]._id);
             }
             newDevices.push(newDevice);
         }
@@ -44,36 +80,43 @@ function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
         });
 
         let newNodes = [];
-        let newEdges = [];
+        // let newEdges = [];
 
+        // const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        const center = {x: 200, y: 200};
         for (let i = 0; i < newDevices.length; i++) {
-            let x = i*100;
-            let y = i*100;
-            if (i < 1) {
-                // TODO: What was this for again?
+            let x = center.x;
+            let y = center.y;
+            if (i > 0) {
+                let degrees = i * (360 / newDevices.length - 1);
+                let radians = degrees * (Math.PI / 180);
+                x = 250 * Math.cos(radians) + center.x;
+                y = 250 * Math.sin(radians) + center.y;
             }
+
+            console.log(newDevices[i]);
             newNodes.push(
                 {
-                    id: `${i + 1}`,
-                    data: { label: `${newDevices[i].name}` },
-                    position: { x: i*100, y: i*100 },
+                    id: newDevices[i]._id,
+                    data: { 
+                        label: `${newDevices[i].name}`,
+                        deviceDetails: {
+                            _id: newDevices[i]._id,
+                            name: newDevices[i].name,
+                            communication: newDevices[i].communication,
+                            description: newDevices[i].description,
+                            health: newDevices[i].health
+                        },
+                    },
+                    position: { x: x, y: y },
+                    type: 'nodeWithModal',
                     // type: 'input',
                 },
             );
 
-            if (i > 0) {
-                newEdges.push(
-                    {
-                        id: `1-${i + 1}`, 
-                        source: `1`, 
-                        target: `${i+1}`,
-                        type: "straight"
-                        // label: `From 1 to ${i+1}`, 
-                        // type: 'step' 
-                    }
-                );
-            }
+
         }
+
         let updateNeeded = false;
         if (newNodes.length !== nodes.length) {
             updateNeeded = true;
@@ -88,7 +131,7 @@ function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
         }
         if (updateNeeded) {
             setNodes(newNodes);
-            setEdges(newEdges);
+            // setEdges(newEdges);
         }
     }, [devices]);
 
@@ -101,9 +144,59 @@ function DeviceMap({ nodes, setNodes, edges, setEdges, devices, setDevices }) {
         return () => clearInterval(intervalId);
     }, []);
 
+    // Update edges when a manifest/deployment is selected (or unselected)
+    useEffect(() => {
+        if (selectedDeployment === null){
+            return;
+        }
+        console.log('Selected deployment:');
+        console.log(selectedDeployment);
+        console.log(`OrchestratorId: ${orchestratorId}`)
+        let newEdges = [];
+        for (let i = 0; i <= selectedDeployment.sequence.length; i++) {
+            let sourceId = orchestratorId;
+            if (i > 0) {
+                sourceId = selectedDeployment.sequence[i-1].device;
+            }
+            let targetId = "";
+            if (i < selectedDeployment.sequence.length) {
+                 targetId = selectedDeployment.sequence[i].device;
+            } else {
+                targetId = orchestratorId; 
+            }
+            newEdges.push(
+                {
+                    id: `${sourceId}-${targetId}`, 
+                    source: sourceId, 
+                    target: targetId,
+                    type: "floating",
+                    markerEnd: {
+                        type: MarkerType.Arrow,
+                    },
+                    animated: true
+                    // style: { stroke: "black", strokeWidth: 1 }
+                    // label: `From 1 to ${i+1}`, 
+                    // type: 'step' 
+                }
+            );
+        }
+        setEdges(newEdges);
+
+    }, [selectedDeployment]);
+
     return (
         <div id="app">
-            <ReactFlow  nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} fitView>
+            <ReactFlow  
+                nodes={nodes} 
+                edges={edges} 
+                onNodesChange={onNodesChange} 
+                onEdgesChange={onEdgesChange} 
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                onConnect={onConnect}
+                connectionLineComponent={FloatingConnectionLine}
+                fitView
+            >
                 <Background />
                 <Controls />
             </ReactFlow>
