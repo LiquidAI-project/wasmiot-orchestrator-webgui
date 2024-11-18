@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import axios from 'axios';
+import {fetchModules} from '../utils';
 
 function ModuleCreation({
     modules, setModules, 
@@ -14,6 +15,7 @@ function ModuleCreation({
     error, setError
 }) {
     const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [moduleCard, setModuleCard] = useState(null);
 
     // Hidden file input style
     const VisuallyHiddenInput = styled('input')({
@@ -27,36 +29,21 @@ function ModuleCreation({
         cursor: 'pointer',
     });
 
-    // Fetch modules from the server
-    const fetchModules = async () => {
-        try {
-            const response = await axios.get('http://localhost:5001/file/module');
-            updateModulesList(response.data);
-        } catch (error) {
-            console.error('Error fetching modules:', error);
-        }
-    };
-
-    // Update the modules list
-    const updateModulesList = (newModules) => {
-        setModules((prevModules) => {
-            const prevModuleIds = new Set(prevModules.map((module) => module._id));
-            const newModuleIds = new Set(newModules.map((module) => module._id));
-            const updatedModules = prevModules.filter((module) => newModuleIds.has(module._id));
-            newModules.forEach((newModule) => {
-                if (!prevModuleIds.has(newModule._id)) {
-                    updatedModules.push(newModule);
-                }
-            });
-            return updatedModules;
-        });
-    };
-
     // Submit module data to the server
     const handleModuleSubmit = async (event) => {
         event.preventDefault();
-        if (!moduleName || !moduleFile) {
-            setError('Both the module name and file are required.');
+        if (!moduleName) {
+            setError('Module name is missing, please add it');
+            setUploadSuccess(false);
+            return;
+        }
+        if (!moduleFile) {
+            setError('Module file is missing, please upload it');
+            setUploadSuccess(false);
+            return;
+        }
+        if (!moduleCard) {
+            setError('Module metadata card is missing, please upload it');
             setUploadSuccess(false);
             return;
         }
@@ -64,6 +51,7 @@ function ModuleCreation({
         const formData = new FormData();
         formData.append('name', moduleName);
         formData.append('module', moduleFile);
+        formData.append('card', moduleCard);
 
         try {
             const response = await axios.post('http://localhost:5001/file/module', formData, {
@@ -71,7 +59,7 @@ function ModuleCreation({
             });
             setModuleId(response.data.id);
             setUploadSuccess(true);
-            fetchModules();
+            fetchModules(setModules);
         } catch (error) {
             console.error('Error uploading the module:', error);
             setError('Error uploading the module. Please try again.');
@@ -83,6 +71,7 @@ function ModuleCreation({
     const handleReset = () => {
         setModuleName('');
         setModuleFile(null);
+        setModuleCard(null);
         setUploadSuccess(false);
         setError(null);
     };
@@ -120,14 +109,31 @@ function ModuleCreation({
                             variant="outlined"
                             component="label"
                             startIcon={<CloudUploadIcon />}
+                            style={{width: "300px"}}
                         >
-                            Upload module
+                            Upload module *
                             <VisuallyHiddenInput
                                 type="file"
                                 onChange={(e) => setModuleFile(e.target.files[0])}
                             />
                         </Button>
-                        {moduleFile && <Box sx={{ ml: 2 }}>Selected file: {moduleFile.name}</Box>}
+                        {moduleFile && <Box sx={{ ml: 2 }}>Selected card: {moduleFile.name}</Box>}
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', pt: 2 }}>
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            style={{width: "300px"}}
+                        >
+                            Upload metadata card *
+                            <VisuallyHiddenInput
+                                type="file"
+                                onChange={(e) => setModuleCard(e.target.files[0])}
+                            />
+                        </Button>
+                        {moduleCard && <Box sx={{ ml: 2 }}>Selected card: {moduleCard.name}</Box>}
                     </Box>
 
                     <Box sx={{ mt: 2 }}>
@@ -135,6 +141,7 @@ function ModuleCreation({
                             type="submit"
                             variant="outlined"
                             endIcon={<ArrowForwardIosIcon />}
+                            style={{width: "300px"}}
                         >
                             Submit
                         </Button>

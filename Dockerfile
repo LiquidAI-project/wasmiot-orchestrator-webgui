@@ -15,7 +15,8 @@ RUN npm install
 COPY backend/ .
 
 # Expose the updated ports for both frontend and backend
-EXPOSE ${FRONTEND_PORT} ${BACKEND_PORT}
+# EXPOSE ${FRONTEND_PORT} ${BACKEND_PORT}
+EXPOSE ${FRONTEND_PORT}
 
 # Run both backend and frontend servers concurrently
 CMD ["sh", "-c", "node server.js & npm start --prefix ../frontend"]

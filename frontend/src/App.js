@@ -30,6 +30,10 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import OpacitySlider from './components/opacitySlider'
 import BackgroundUpdater from './components/backgroundUpdater'
+import { 
+  useNodesState, 
+  useEdgesState, 
+} from '@xyflow/react';
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -76,6 +80,8 @@ export default function App() {
   const [moduleId, setModuleId] = useState(''); // Module id of the recently uploaded module
   const [error, setError] = useState(''); // Holds the latest error
   const [selectedDeployment, setSelectedDeployment] = useState(null); // Currently selected deployment to be executed (used for the visualization)
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   // Handles changing a tab
   const handleChange = (event, newValue) => {
@@ -127,6 +133,9 @@ export default function App() {
             <DeviceMap 
               devices={devices} setDevices={setDevices}
               selectedDeployment={selectedDeployment} setSelectedDeployment={setSelectedDeployment}
+              modules={modules} setModules={setModules}
+              nodes={nodes} setNodes={setNodes} onNodesChange={onNodesChange}
+              edges={edges} setEdges={setEdges} onEdgesChange={onEdgesChange}
             />
           </Grid>
         </Grid>

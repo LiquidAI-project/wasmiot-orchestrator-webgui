@@ -46,13 +46,72 @@ app.post('/file/device/discovery/reset', async (req, res) => {
   }
 });
 
+app.post('/file/device/:id/upload/card', async (req, res) => {
+  const { id } = req.params;
+
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error('Error parsing form data:', err);
+      return res.status(500).json({ error: 'Error parsing form data' });
+    }
+
+    const formData = new FormData();
+
+    for (const fieldName in fields) {
+      if (Array.isArray(fields[fieldName])) {
+        fields[fieldName].forEach((value) => {
+          formData.append(fieldName, value);
+        });
+      } else {
+        formData.append(fieldName, fields[fieldName]);
+      }
+    }
+
+    for (const fileKey in files) {
+      const file = files[fileKey];
+      if (file && file[0].filepath) {
+        formData.append(fileKey, fs.createReadStream(file[0].filepath), file[0].originalFilename);
+      } else {
+        console.error(`File not found for key: ${fileKey}`);
+      }
+    }
+
+    
+
+    try {
+      // const response = await axios.post(`${address}file/module/${id}/upload`, formData, {
+      //   headers: {
+      //     ...formData.getHeaders(),
+      //   },
+      // });
+
+      // res.json(response.data);
+      // TODO: Implement actual upload
+      res.status(201).json({status: "Succesfully received device card upload."});
+    } catch (error) {
+      console.error(`Error forwarding device card with device id: ${id}`, error);
+      res.status(500).json({ error: 'Error forwarding device card data' });
+    }
+  });
+});
+
 // MODULES
 
-app.post('/file/module', upload.single('module'), async (req, res) => {
+app.post('/file/module',   upload.fields([{ name: 'module', maxCount: 1 }, { name: 'card', maxCount: 1 }]), async (req, res) => {
   try {
     const formData = new FormData();
     formData.append('name', req.body.name);
-    formData.append('module', req.file.buffer, req.file.originalname);
+    if (req.files['module'] && req.files['module'][0]) {
+      const moduleFile = req.files['module'][0];
+      formData.append('module', moduleFile.buffer, moduleFile.originalname);
+    }
+    if (req.files['card'] && req.files['card'][0]) {
+      const cardFile = req.files['card'][0];
+      // TODO: Uncomment and modify once orchestrator is updated
+      // formData.append('card', cardFile.buffer, cardFile.originalname);
+    }
 
     const response = await axios.post(`${address}file/module`, formData, {
       headers: {

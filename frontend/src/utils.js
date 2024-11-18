@@ -39,10 +39,21 @@ export const handleManifestDelete = async (manifestId) => {
 };
 
 // Function to fetch devices from the backend periodically
+// Also gets related metadata cards
 export const fetchDevices = async (setDevices) => {
     try {
         const response = await axios.get('http://localhost:5001/file/device');
         const newDevices = response.data; // Assuming the data is a list of device objects with name and _id
+        // TODO: Get metadata cards here
+        let metadataCards = []
+        for (let i = 0; i < newDevices.length; i++) {
+          // Currently assigns semi-fake data
+          newDevices[i].metadataCard = {
+            "name": `Metadata name ${i+1}`,
+            "id": `Metadata id ${i+1}`,
+            "zone": (i % 2 == 0) ? "safe" : "unsafe"
+          }
+        }
         updateDevicesList(newDevices, setDevices);
     } catch (error) {
         console.error('Error fetching devices:', error);
@@ -51,18 +62,56 @@ export const fetchDevices = async (setDevices) => {
 
 // Update the list of devices
 export const updateDevicesList = (newDevices, setDevices) => {
-    setDevices((prevDevices) => {
-        const prevDeviceIds = new Set(prevDevices.map((device) => device._id));
-        const newDeviceIds = new Set(newDevices.map((device) => device._id));
-        const updatedDevices = prevDevices.filter((device) => newDeviceIds.has(device._id));
-        newDevices.forEach((newDevice) => {
-            if (!prevDeviceIds.has(newDevice._id)) {
-                updatedDevices.push(newDevice);
-            }
-        });
-        return updatedDevices;
-    });
+  setDevices((prevDevices) => {
+      const prevDeviceIds = new Set(prevDevices.map((device) => device._id));
+      const newDeviceIds = new Set(newDevices.map((device) => device._id));
+      const updatedDevices = prevDevices.filter((device) => newDeviceIds.has(device._id));
+      newDevices.forEach((newDevice) => {
+          if (!prevDeviceIds.has(newDevice._id)) {
+              updatedDevices.push(newDevice);
+          }
+      });
+      return updatedDevices;
+  });
 };
+
+// Fetches the list of modules from orchestrator
+export const fetchModules = async (setModules) => {
+  try {
+      const response = await axios.get('http://localhost:5001/file/module');
+      const newModules = response.data; 
+      updateModulesList(newModules, setModules);
+  } catch (error) {
+      console.error('Error fetching modules:', error);
+  }
+};
+
+// Funtion to update the list of modules
+export const updateModulesList = (newModules, setModules) => {
+  setModules((prevModules) => {
+  const prevModuleIds = new Set(prevModules.map((module) => module._id));
+  const newModuleIds = new Set(newModules.map((module) => module._id));
+  const updatedModules = prevModules.filter((module) => newModuleIds.has(module._id));
+  newModules.forEach((newModule) => {
+      if (!prevModuleIds.has(newModule._id)) {
+      updatedModules.push(newModule);
+      }
+  });
+  return updatedModules;
+  });
+};
+
+// Function to delete a module
+export const handleModuleDelete = async (moduleId, setModules) => {
+  try {
+      const response = await axios.delete(`http://localhost:5001/file/module/${moduleId}`);
+      console.log(`Deleted module with id: ${moduleId}`, response.data);
+  } catch (error) {
+      console.error(`Error deleting module with id: ${moduleId}`, error);
+  }
+  fetchModules(setModules);
+};
+
 
 ////////////////////////////////////////
 // From: https://reactflow.dev/examples/edges/floating-edges

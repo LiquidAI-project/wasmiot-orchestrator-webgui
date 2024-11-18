@@ -17,18 +17,22 @@ import {
     Position
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { fetchDevices, createNodesAndEdges } from '../utils';
+import { fetchDevices, fetchModules } from '../utils';
 import NodeWithModal from './nodeWithModal';
 import FloatingEdge from './floatingEdge';
 import FloatingConnectionLine from './floatingConnectionLine';
 
 
-function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeployment }) {
+function DeviceMap({ 
+    devices, setDevices, 
+    selectedDeployment, setSelectedDeployment, 
+    modules, setModules, 
+    nodes, setNodes, onNodesChange, 
+    edges, setEdges, onEdgesChange 
+}) {
     const nodeTypes = { nodeWithModal: NodeWithModal };
     const edgeTypes = { floating: FloatingEdge };
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [orchestratorId, setOrchestratorId] = useState("");
     const onConnect = useCallback(
       (params) =>
@@ -59,7 +63,8 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
                 "port": devices[i].communication.port,
                 "communication": devices[i].communication,
                 "description": devices[i].description,
-                "health": devices[i].health
+                "health": devices[i].health,
+                "metadataCard": devices[i].metadataCard
             };
             if (devices[i].name !== "orchestrator"){
                 newDevice.cpuName = devices[i].description.platform.cpu.humanReadableName
@@ -97,14 +102,18 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
             newNodes.push(
                 {
                     id: newDevices[i]._id,
-                    data: { 
+                    data: {
                         label: `${newDevices[i].name}`,
                         deviceDetails: {
                             _id: newDevices[i]._id,
                             name: newDevices[i].name,
                             communication: newDevices[i].communication,
                             description: newDevices[i].description,
-                            health: newDevices[i].health
+                            health: newDevices[i].health,
+                            metadataCard: newDevices[i].metadataCard,
+                            positionInSequence: "",
+                            currentModule: "",
+                            currentFunction: ""
                         },
                     },
                     position: { x: x, y: y },
@@ -114,81 +123,83 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
 
         }
 
+        // TODO: Use these grouping examples for visualizing device zones??
         // Add extra grouping examples
-        newNodes.push(
-            {
-                id: 'highrisk',
-                data: { label: 'High Risk' },
-                position: { x: 400, y: -200 },
-                style: { 
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    width: 300, 
-                    height: 300 
-                },
-            },
-            {
-                id: "high example 1",
-                data: { 
-                    label: "Risky device 1",
-                    deviceDetails: {
-                        _id: "",
-                        name: "",
-                        communication: {},
-                        description: {},
-                        health: {}
-                    },
-                },
-                position: { x: 10, y: 50 },
-                type: 'nodeWithModal',
-                parentId: 'highrisk',
-                extent: 'parent',
-            },
-            {
-                id: "high example 2",
-                data: { 
-                    label: "Risky device 2",
-                    deviceDetails: {
-                        _id: "",
-                        name: "",
-                        communication: {},
-                        description: {},
-                        health: {}
-                    },
-                },
-                position: { x: 10, y: 100 },
-                type: 'nodeWithModal',
-                parentId: 'highrisk',
-                extent: 'parent',
-            },
-            {
-                id: 'lowrisk',
-                data: { label: 'Low Risk' },
-                position: { x: 400, y: 200 },
-                style: { 
-                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                    width: 300, 
-                    height: 300 
-                },
-            },
-            {
-                id: "low example 1",
-                data: { 
-                    label: "Normal device 1",
-                    deviceDetails: {
-                        _id: "",
-                        name: "",
-                        communication: {},
-                        description: {},
-                        health: {}
-                    },
-                },
-                position: { x: 10, y: 50 },
-                type: 'nodeWithModal',
-                parentId: 'lowrisk',
-                extent: 'parent',
-            },
-        );
+        // newNodes.push(
+        //     {
+        //         id: 'highrisk',
+        //         data: { label: 'High Risk' },
+        //         position: { x: 400, y: -200 },
+        //         style: { 
+        //             backgroundColor: 'rgba(255, 0, 0, 0.2)',
+        //             width: 300, 
+        //             height: 300 
+        //         },
+        //     },
+        //     {
+        //         id: "high example 1",
+        //         data: { 
+        //             label: "Risky device 1",
+        //             deviceDetails: {
+        //                 _id: "",
+        //                 name: "",
+        //                 communication: {},
+        //                 description: {},
+        //                 health: {}
+        //             },
+        //         },
+        //         position: { x: 10, y: 50 },
+        //         type: 'nodeWithModal',
+        //         parentId: 'highrisk',
+        //         extent: 'parent',
+        //     },
+        //     {
+        //         id: "high example 2",
+        //         data: { 
+        //             label: "Risky device 2",
+        //             deviceDetails: {
+        //                 _id: "",
+        //                 name: "",
+        //                 communication: {},
+        //                 description: {},
+        //                 health: {}
+        //             },
+        //         },
+        //         position: { x: 10, y: 100 },
+        //         type: 'nodeWithModal',
+        //         parentId: 'highrisk',
+        //         extent: 'parent',
+        //     },
+        //     {
+        //         id: 'lowrisk',
+        //         data: { label: 'Low Risk' },
+        //         position: { x: 400, y: 200 },
+        //         style: { 
+        //             backgroundColor: 'rgba(0, 0, 255, 0.2)',
+        //             width: 300, 
+        //             height: 300 
+        //         },
+        //     },
+        //     {
+        //         id: "low example 1",
+        //         data: { 
+        //             label: "Normal device 1",
+        //             deviceDetails: {
+        //                 _id: "",
+        //                 name: "",
+        //                 communication: {},
+        //                 description: {},
+        //                 health: {}
+        //             },
+        //         },
+        //         position: { x: 10, y: 50 },
+        //         type: 'nodeWithModal',
+        //         parentId: 'lowrisk',
+        //         extent: 'parent',
+        //     },
+        // );
 
+        // Check if a full update/redraw is needed
         let updateNeeded = false;
         if (newNodes.length !== nodes.length) {
             updateNeeded = true;
@@ -201,6 +212,7 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
             }
           }
         }
+
         if (updateNeeded) {
             setNodes(newNodes);
         }
@@ -214,43 +226,56 @@ function DeviceMap({ devices, setDevices, selectedDeployment, setSelectedDeploym
         return () => clearInterval(intervalId);
     }, []);
 
+    // Populate the list of modules
+    useEffect(() => {
+        fetchModules(setModules);
+    }, []);
+
     // Update edges when a manifest/deployment is selected (or unselected)
     useEffect(() => {
+
         if (selectedDeployment === null){
             return;
         }
-        console.log('Selected deployment:');
-        console.log(selectedDeployment);
-        console.log(`OrchestratorId: ${orchestratorId}`)
         let newEdges = [];
-        for (let i = 0; i <= selectedDeployment.sequence.length; i++) {
-            let sourceId = orchestratorId;
-            if (i > 0) {
-                sourceId = selectedDeployment.sequence[i-1].device;
-            }
-            let targetId = "";
-            if (i < selectedDeployment.sequence.length) {
-                 targetId = selectedDeployment.sequence[i].device;
-            } else {
-                targetId = orchestratorId; 
-            }
-            newEdges.push(
-                {
-                    id: `${sourceId}-${targetId}`, 
-                    source: sourceId, 
-                    target: targetId,
-                    type: "floating",
-                    // markerEnd: {
-                    //     type: MarkerType.Arrow,
-                    // },
-                    animated: true,
-                    style: { stroke: "black", strokeWidth: 1 }
-                    // label: `From 1 to ${i+1}`, 
-                    // type: 'step' 
+        if (selectedDeployment.sequence.length > 1){
+            for (let i = 1; i < selectedDeployment.sequence.length; i++) {
+
+                let sourceId = selectedDeployment.sequence[i-1].device;
+                let targetId = selectedDeployment.sequence[i].device;
+                let sourceNode = nodes.find(node => node.id === sourceId);
+                let targetNode = nodes.find(node => node.id === targetId);
+
+                sourceNode.data.deviceDetails.positionInSequence = `${i-1}`
+                sourceNode.data.deviceDetails.currentFunction = selectedDeployment.sequence[i-1].func;
+                let sourceModule = modules.find(m => m._id === selectedDeployment.sequence[i-1].module);
+                if (sourceModule !== undefined) {
+                    sourceNode.data.deviceDetails.currentModule = sourceModule.name;
                 }
-            );
+
+                targetNode.data.deviceDetails.positionInSequence = `${i}`
+                targetNode.data.deviceDetails.currentFunction = selectedDeployment.sequence[i].func;
+                let targetModule = modules.find(m => m._id === selectedDeployment.sequence[i].module);
+                if (targetModule !== undefined) {
+                    targetNode.data.deviceDetails.currentModule = targetModule.name;
+                }
+
+                newEdges.push(
+                    {
+                        id: `${sourceId}-${targetId}`, 
+                        source: sourceId, 
+                        target: targetId,
+                        type: "floating",
+                        animated: true,
+                        style: { stroke: "black", strokeWidth: 1 },
+                        label: `Step ${i}`, 
+                    }
+                );
+            }
         }
+
         setEdges(newEdges);
+        setNodes(nodes);
 
     }, [selectedDeployment]);
 
