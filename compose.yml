@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}" # Frontend server
+      - "${BACKEND_PORT}:${BACKEND_PORT}" # Backend server
+    volumes:
+      - ./frontend:/app/frontend
+      - ./backend:/app/backend
+    environment:
+      - PORT=${FRONTEND_PORT}
+      - BACKEND_PORT=${BACKEND_PORT}
+      - ORCHESTRATOR_ADDRESS=${ORCHESTRATOR_ADDRESS}
+
+networks:
+  default:
+    name: wasmiot-net
+    driver: bridge

@@ -6,7 +6,8 @@ const cors = require('cors');
 const FormData = require('form-data');
 const multer = require('multer'); // Middleware for handling file uploads
 const app = express();
-const port = 5001;
+const port = process.env.BACKEND_PORT || 5001;
+const address = process.env.ORCHESTRATOR_ADDRESS || "http://localhost:3000/";
 
 // Enable CORS
 app.use(cors());
@@ -19,7 +20,7 @@ const upload = multer();
 
 app.get('/file/device', async (req, res) => {
   try {
-    const response = await axios.get('http://localhost:3000/file/device');
+    const response = await axios.get(`${address}file/device`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Error getting a list of devices' });
@@ -28,7 +29,7 @@ app.get('/file/device', async (req, res) => {
 
 app.delete('/file/device', async (req, res) => {
   try {
-    const response = await axios.delete('http://localhost:3000/file/device');
+    const response = await axios.delete(`${address}file/device`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Error deleting all devices' });
@@ -37,7 +38,7 @@ app.delete('/file/device', async (req, res) => {
 
 app.post('/file/device/discovery/reset', async (req, res) => {
   try {
-    const response = await axios.post('http://localhost:3000/file/device/discovery/reset');
+    const response = await axios.post(`${address}file/device/discovery/reset`);
     res.json(response.data);
   } catch (error) {
     console.error('Error resetting device discovery:', error);
@@ -53,7 +54,7 @@ app.post('/file/module', upload.single('module'), async (req, res) => {
     formData.append('name', req.body.name);
     formData.append('module', req.file.buffer, req.file.originalname);
 
-    const response = await axios.post('http://localhost:3000/file/module', formData, {
+    const response = await axios.post(`${address}file/module`, formData, {
       headers: {
         ...formData.getHeaders(),
       },
@@ -68,7 +69,7 @@ app.post('/file/module', upload.single('module'), async (req, res) => {
 
 app.get('/file/module', async (req, res) => {
   try {
-    const response = await axios.get('http://localhost:3000/file/module');
+    const response = await axios.get(`${address}file/module`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Error forwarding the request to the actual server' });
@@ -77,19 +78,18 @@ app.get('/file/module', async (req, res) => {
 
 app.delete('/file/module', async (req, res) => {
   try {
-    const response = await axios.delete('http://localhost:3000/file/module');
+    const response = await axios.delete(`${address}file/module`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Error deleting all modules' });
   }
 });
 
-
 app.get('/file/module/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const response = await axios.get(`http://localhost:3000/file/module/${id}`);
+    const response = await axios.get(`${address}file/module/${id}`);
     res.json(response.data);
   } catch (error) {
     console.error(`Error getting module with id: ${id}`, error);
@@ -100,62 +100,55 @@ app.get('/file/module/:id', async (req, res) => {
 app.post('/file/module/:id/upload', async (req, res) => {
   const { id } = req.params;
 
-  // Create a new form to parse incoming form-data
   const form = new formidable.IncomingForm();
 
   form.parse(req, async (err, fields, files) => {
-      if (err) {
-          console.error('Error parsing form data:', err);
-          return res.status(500).json({ error: 'Error parsing form data' });
+    if (err) {
+      console.error('Error parsing form data:', err);
+      return res.status(500).json({ error: 'Error parsing form data' });
+    }
+
+    const formData = new FormData();
+
+    for (const fieldName in fields) {
+      if (Array.isArray(fields[fieldName])) {
+        fields[fieldName].forEach((value) => {
+          formData.append(fieldName, value);
+        });
+      } else {
+        formData.append(fieldName, fields[fieldName]);
       }
+    }
 
-      // Create a new FormData instance to forward data
-      const formData = new FormData();
-
-      // Append each field from the form to the FormData
-      for (const fieldName in fields) {
-          if (Array.isArray(fields[fieldName])) {
-              fields[fieldName].forEach((value) => {
-                  formData.append(fieldName, value);
-              });
-          } else {
-              formData.append(fieldName, fields[fieldName]);
-          }
+    for (const fileKey in files) {
+      const file = files[fileKey];
+      if (file && file.filepath) {
+        formData.append(fileKey, fs.createReadStream(file.filepath), file.originalFilename);
+      } else {
+        console.error(`File not found for key: ${fileKey}`);
       }
+    }
 
-      // Append each file in the form to the FormData
-      for (const fileKey in files) {
-          const file = files[fileKey];
-          if (file && file.filepath) { // Ensure the file exists and has a valid path
-              formData.append(fileKey, fs.createReadStream(file.filepath), file.originalFilename);
-          } else {
-              console.error(`File not found for key: ${fileKey}`);
-          }
-      }
+    try {
+      const response = await axios.post(`${address}file/module/${id}/upload`, formData, {
+        headers: {
+          ...formData.getHeaders(),
+        },
+      });
 
-      try {
-          // Forward the formData to the target backend address
-          const response = await axios.post(`http://localhost:3000/file/module/${id}/upload`, formData, {
-              headers: {
-                  ...formData.getHeaders(),
-              },
-          });
-
-          // Send back the response from the target server
-          res.json(response.data);
-      } catch (error) {
-          console.error(`Error forwarding module with id: ${id}`, error);
-          res.status(500).json({ error: 'Error forwarding module data' });
-      }
+      res.json(response.data);
+    } catch (error) {
+      console.error(`Error forwarding module with id: ${id}`, error);
+      res.status(500).json({ error: 'Error forwarding module data' });
+    }
   });
 });
-
 
 app.delete('/file/module/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const response = await axios.delete(`http://localhost:3000/file/module/${id}`);
+    const response = await axios.delete(`${address}file/module/${id}`);
     res.json(response.data);
   } catch (error) {
     console.error(`Error deleting module with id: ${id}`, error);
@@ -167,7 +160,7 @@ app.delete('/file/module/:id', async (req, res) => {
 
 app.get('/file/manifest', async (req, res) => {
   try {
-    const response = await axios.get('http://localhost:3000/file/manifest');
+    const response = await axios.get(`${address}file/manifest`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Error forwarding the request to the actual server' });
@@ -176,31 +169,27 @@ app.get('/file/manifest', async (req, res) => {
 
 app.delete('/file/manifest', async (req, res) => {
   try {
-    const response = await axios.delete('http://localhost:3000/file/manifest');
+    const response = await axios.delete(`${address}file/manifest`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Error deleting all manifests' });
   }
 });
 
-
 app.post('/file/manifest', async (req, res) => {
   const { name, sequence, ...procedures } = req.body;
 
-  // Prepare the payload for the actual server
   const payload = {
     name,
     sequence,
-    ...procedures
+    ...procedures,
   };
 
   try {
-    // Forward the request to the actual server
-    const response = await axios.post('http://localhost:3000/file/manifest', payload, {
-      headers: { 'Content-Type': 'application/json' }
+    const response = await axios.post(`${address}file/manifest`, payload, {
+      headers: { 'Content-Type': 'application/json' },
     });
 
-    // Return the response from the actual server to the client
     res.json(response.data);
   } catch (error) {
     console.error('Error submitting manifest:', error);
@@ -212,7 +201,7 @@ app.delete('/file/manifest/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const response = await axios.delete(`http://localhost:3000/file/manifest/${id}`);
+    const response = await axios.delete(`${address}file/manifest/${id}`);
     res.json(response.data);
   } catch (error) {
     console.error(`Error deleting manifest with id: ${id}`, error);
@@ -222,40 +211,34 @@ app.delete('/file/manifest/:id', async (req, res) => {
 
 app.post('/file/manifest/:id', async (req, res) => {
   const { id } = req.params;
-  const payload = req.body; 
-
-  try {
-      const response = await axios.post(`http://localhost:3000/file/manifest/${id}`, payload, {
-          headers: { 'Content-Type': 'application/json' }
-      });
-      res.json(response.data);
-  } catch (error) {
-      console.error(`Error deploying manifest with id: ${id}`, error);
-      res.status(500).json({ error: 'Error deploying manifest' });
-  }
-});
-
-app.post('/execute/:manifestId',upload.none(), async (req, res) => {
-  const { manifestId } = req.params;
   const payload = req.body;
 
   try {
-    const executionResponse = await axios.post(
-      `http://localhost:3000/execute/${manifestId}`, 
-      req.body, 
-      { headers: { 'Content-Type': 'application/json' }}
-    );
-
-    // Return the execution response back to the client
-    res.json({ result: executionResponse.data });
+    const response = await axios.post(`${address}file/manifest/${id}`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
   } catch (error) {
-    // console.error(`Error executing manifest with id: ${manifestId}`, error);
-    res.status(500).json({ error: 'Error executing manifest' });
+    console.error(`Error deploying manifest with id: ${id}`, error);
+    res.status(500).json({ error: 'Error deploying manifest' });
   }
 });
 
+app.post('/execute/:manifestId', upload.none(), async (req, res) => {
+  const { manifestId } = req.params;
 
+  try {
+    const executionResponse = await axios.post(
+      `${address}execute/${manifestId}`,
+      req.body,
+      { headers: { 'Content-Type': 'application/json' } },
+    );
 
+    res.json({ result: executionResponse.data });
+  } catch (error) {
+    res.status(500).json({ error: 'Error executing manifest' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Proxy backend running on http://localhost:${port}`);
