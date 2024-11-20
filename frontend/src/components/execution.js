@@ -129,13 +129,13 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
             </Button>
 
             {isSubmitted && (
-                <Alert severity="success" sx={{ marginTop: 2 }}>
+                <Alert severity="success" sx={{ marginTop: 2 }} onClose={()=>{setIsSubmitted(false);}}>
                     Successfully executed manifest "{activeManifests.find(m => m._id === selectedManifestId)?.name}"!
                     <br />
                     Result: {JSON.stringify(executionResult, null, 2)}
                 </Alert>
             )}
-            {error && <Alert severity="error" sx={{ marginTop: 2 }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ marginTop: 2 }} onClose={()=>{setError(null);}}>{error}</Alert>}
         </Box>
     );
 }

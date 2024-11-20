@@ -148,6 +148,7 @@ function ModuleDescription({
                     formData.append(mount.name, mount.file);
                 }
             });
+            setSelectedModuleId('');
         });
 
         try {
@@ -182,14 +183,14 @@ function ModuleDescription({
                 </Select>
             </FormControl>
 
-            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>} {/* Error message */}
+            {error && <Alert severity="error" sx={{ mt: 2 }} onClose={()=>{setError(null);}}>{error}</Alert>}
             {isSubmitted && (
-                <Alert severity="success" sx={{ mt: 2 }}>
+                <Alert severity="success" sx={{ mt: 2 }} onClose={()=>{setIsSubmitted(false);}}>
                     Description for {moduleName} has been successfully uploaded!
                 </Alert>
             )}
 
-            {!isSubmitted && (
+            {selectedModuleId && (
                 <>
                     {formFields.map((field, fieldIndex) => (
                         <Box key={field.name} component="fieldset" sx={{ border: '1px solid #ccc', padding: 2, marginTop: 2 }}>

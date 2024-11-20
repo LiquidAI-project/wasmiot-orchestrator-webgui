@@ -94,7 +94,7 @@ export default function App() {
       <Box sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={value} onChange={handleChange} aria-label="basic tabs">
-            <Tab label="Devices" id="simple-tab-0" aria-controls="simple-tabpanel-0"/>
+            <Tab label="Dashboard" id="simple-tab-0" aria-controls="simple-tabpanel-0"/>
             <Tab label="Modules" id="simple-tab-1" aria-controls="simple-tabpanel-1"/>
             <Tab label="Manifests" id="simple-tab-2" aria-controls="simple-tabpanel-2"/>
           </Tabs>
@@ -103,7 +103,7 @@ export default function App() {
         <CustomTabPanel value={value} index={0}>
 
         <Grid container spacing={2}>
-          <Grid size={{ xs: 6, md: 4 }}>
+          <Grid size={{ xs: 6, md: 4 }} style={{maxWidth: "400px"}}>
             <Box
               sx={{
                 maxHeight: 'calc(100vh - 150px)', // Adjust the height as needed

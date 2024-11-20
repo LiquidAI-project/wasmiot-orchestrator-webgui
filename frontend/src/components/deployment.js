@@ -90,11 +90,15 @@ function Deployment({ manifests, setManifests }) {
             </Button>
 
             {isSubmitted && (
-                <Alert severity="success" sx={{ marginTop: 2 }}>
+                <Alert severity="success" sx={{ marginTop: 2 }} onClose={()=>{setIsSubmitted(false);}}>
                     Successfully deployed manifest {manifests.find(m => m._id === selectedManifestId)?.name}!
                 </Alert>
             )}
-            {error && <Alert severity="error" sx={{ marginTop: 2 }}>{error}</Alert>} {/* Error message */}
+            {error && 
+                <Alert severity="error" sx={{ marginTop: 2 }} onclose={()=>{setError(null);}}>
+                    {error}
+                </Alert>
+            } 
         </Box>
     );
 }
