@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, FormControl, InputLabel, Select, MenuItem, IconButton, Typography, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
+import {fetchModules, fetchManifests} from '../utils';
 
 function ManifestCreation({ devices, setDevices, modules, setModules, manifests, setManifests }) {
     const [manifestName, setManifestName] = useState('');
     const [procedures, setProcedures] = useState([{ device: '', module: '', func: '' }]);
-    const [submissionSuccess, setSubmissionSuccess] = useState(false);
-    const [submissionError, setSubmissionError] = useState(false);
+    const [submissionStatus, setSubmissionStatus] = useState(0); // 0 = neutral, 1 = submitted, validation succeeded 2 = submitted, validation failed 3 = failed submission
+    const [submissionMessage, setSubmissionMessage] = useState(""); // Contains the message for submission status, such as error message, or reason why validation failed
+    const [validationFailureReasoning, setValidationFailureReasoning] = useState([]) // Contains reason for validation failure
 
     // Handle manifest name input change
     const handleManifestNameChange = (event) => setManifestName(event.target.value);
@@ -16,8 +18,9 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
     const resetForm = () => {
         setManifestName('');
         setProcedures([{ device: '', module: '', func: '' }]);
-        setSubmissionSuccess(false);
-        setSubmissionError(false);
+        setSubmissionStatus(0);
+        setSubmissionMessage("");
+        setValidationFailureReasoning([]);
     };
 
     // Handle device change for a specific procedure
@@ -74,86 +77,41 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
         const payload = { name: manifestName, sequence };
 
         try {
-            await axios.post('http://localhost:5001/file/manifest', payload);
-            setSubmissionSuccess(true);
-            setSubmissionError(false);
-            fetchManifests();
+            const response = await axios.post('http://localhost:5001/file/manifest', payload);
+            const manifestId = response.data;
+            fetchManifests(setManifests);
+            
+            const validationLogsResponse = await axios.get('http://localhost:5001/deploymentCertificates');
+            const validationLogs = validationLogsResponse.data;
+            console.log(validationLogs);
+            console.log(manifestId);
+
+            let certificate = validationLogs.find(log => log.deploymentId === manifestId);
+            console.log(certificate);
+            if (!certificate.valid) {
+                setValidationFailureReasoning(certificate.validationLogs);
+                setSubmissionMessage("Manifest submitted succesfully, but failed to validate.");
+                setSubmissionStatus(2);
+            } else {
+                setSubmissionStatus(1);
+                setSubmissionMessage("Manifest submitted and validated succesfully.");
+            }
         } catch (error) {
-            setSubmissionError(true);
-            setSubmissionSuccess(false);
+            setSubmissionStatus(3);
+            setSubmissionMessage("Failed to submit manifest.");
             console.error("Error submitting form:", error);
         }
     };
 
     // Populate the initial module list
     useEffect(() => {
-        fetchModules();
+        fetchModules(setModules);
     }, []);
-
-    // Fetch list of modules
-    const fetchModules = async () => {
-        try {
-            const response = await axios.get('http://localhost:5001/file/module');
-            updateModulesList(response.data);
-        } catch (error) {
-            console.error('Error fetching modules:', error);
-        }
-    };
-
-    // Fetch the list of manifests
-    const fetchManifests = async () => {
-        try {
-            const response = await axios.get('http://localhost:5001/file/manifest');
-            updateManifestsList(response.data);
-        } catch (error) {
-            console.error('Error fetching manifests:', error);
-        }
-    };
-
-    // Update the list of modules
-    const updateModulesList = (newModules) => {
-        setModules((prevModules) => {
-            const prevModuleIds = new Set(prevModules.map((module) => module._id));
-            const newModuleIds = new Set(newModules.map((module) => module._id));
-            const updatedModules = prevModules.filter((module) => newModuleIds.has(module._id));
-            newModules.forEach((newModule) => {
-                if (!prevModuleIds.has(newModule._id)) {
-                    updatedModules.push(newModule);
-                }
-            });
-            return updatedModules;
-        });
-    };
-
-    // Update the list of manifests
-    const updateManifestsList = (newManifests) => {
-        setManifests((prevManifests) => {
-            const prevManifestIds = new Set(prevManifests.map((manifest) => manifest._id));
-            const newManifestIds = new Set(newManifests.map((manifest) => manifest._id));
-            const updatedManifests = prevManifests.filter((manifest) => newManifestIds.has(manifest._id));
-            newManifests.forEach((newManifest) => {
-                if (!prevManifestIds.has(newManifest._id)) {
-                    updatedManifests.push(newManifest);
-                }
-            });
-            return updatedManifests;
-        });
-    };
 
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
-            {submissionSuccess && (
-                <Alert severity="success" action={
-                    <Button color="inherit" size="small" onClick={resetForm}>
-                        Create another manifest
-                    </Button>
-                }>
-                    Manifest submitted successfully!
-                </Alert>
-            )}
-            {submissionError && <Alert severity="error">Something went wrong while submitting the manifest.</Alert>}
 
-            {!submissionSuccess && (
+            {submissionStatus === 0 && (
                 <>
                     <TextField
                         label="Manifest name"
@@ -240,6 +198,35 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
                     </Button>
                 </>
             )}
+
+            {submissionStatus === 1 && (
+                <Alert severity="success" action={
+                    <Button color="inherit" size="small" onClick={resetForm}>
+                        Create another manifest
+                    </Button>
+                }>
+                    {{submissionMessage}}
+                </Alert>
+            )}
+            {submissionStatus === 2 && (
+                <Alert severity="warning" action={
+                    <Button color="inherit" size="small" onClick={resetForm}>
+                        Create another manifest
+                    </Button>
+                }>
+                    { submissionMessage }
+                    <pre>
+                    { JSON.stringify(validationFailureReasoning, undefined, 2) }
+                    </pre>
+                </Alert>
+            )}
+            {submissionStatus === 3 && (
+                <Alert severity="error">
+                    Something went wrong while submitting the manifest.
+                </Alert>
+            )}
+
+            
         </Box>
     );
 }

@@ -55,26 +55,32 @@ function DeviceMap({
         // Construct the nodes and edges based on devices list.
         // Orchestrator is assumed to be the device with name "orchestrator".
         let newDevices = [];
+        
         for (let i = 0; i < devices.length; i++) {
-            let newDevice = {
-                "_id": devices[i]._id,
-                "name": devices[i].name,
-                "ip": devices[i].communication.addresses[0], // Can they have multiple addresses?
-                "port": devices[i].communication.port,
-                "communication": devices[i].communication,
-                "description": devices[i].description,
-                "health": devices[i].health,
-                "metadataCard": devices[i].metadataCard
-            };
-            if (devices[i].name !== "orchestrator"){
-                newDevice.cpuName = devices[i].description.platform.cpu.humanReadableName
-                newDevice.cpuSpeed = `${(devices[i].description.platform.cpu.clockSpeed.Hz / 1000000000).toFixed(2)} Ghz`
-                newDevice.cpuUsage = `${(devices[i].health.report.cpuUsage).toFixed(2)}`
-                newDevice.memory = `${(devices[i].description.platform.memory.bytes / 1000000000).toFixed(2)} Gbs`
-            } else {
-                setOrchestratorId(devices[i]._id);
+            try {
+                let newDevice = {
+                    "_id": devices[i]._id,
+                    "name": devices[i].name,
+                    "ip": devices[i].communication.addresses[0], // Can they have multiple addresses?
+                    "port": devices[i].communication.port,
+                    "communication": devices[i].communication,
+                    "description": devices[i].description,
+                    "health": devices[i].health,
+                    "metadataCard": devices[i].metadataCard
+                };
+                if (devices[i].name !== "orchestrator"){
+                    newDevice.cpuName = devices[i].description.platform.cpu.humanReadableName
+                    newDevice.cpuSpeed = `${(devices[i].description.platform.cpu.clockSpeed.Hz / 1000000000).toFixed(2)} Ghz`
+                    newDevice.cpuUsage = `${(devices[i].health.report.cpuUsage).toFixed(2)}`
+                    newDevice.memory = `${(devices[i].description.platform.memory.bytes / 1000000000).toFixed(2)} Gbs`
+                } else {
+                    setOrchestratorId(devices[i]._id);
+                }
+                newDevices.push(newDevice);
+            } catch (e) {
+                console.log("ERROR while reading devices list returned from orchestrator!!");
+                console.log(e);
             }
-            newDevices.push(newDevice);
         }
 
         // Separate orchestrator and sort the rest of the devices by name

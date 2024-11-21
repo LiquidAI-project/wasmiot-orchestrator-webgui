@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Position, MarkerType } from '@xyflow/react';
 
+
 // Update the list of manifests
 export const updateManifestsList = (newManifests, setManifests) => {
     setManifests((prevManifests) => {

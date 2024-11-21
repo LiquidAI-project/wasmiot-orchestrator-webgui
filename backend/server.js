@@ -217,6 +217,16 @@ app.delete('/file/module/:id', async (req, res) => {
 
 // MANIFESTS
 
+app.get('/deploymentCertificates', async (req, res) => {
+  try {
+    const response = await axios.get(`${address}deploymentCertificates`);
+    res.json(response.data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Error while fetching deployment certificate list from orchestrator' });
+  }
+});
+
 app.get('/file/manifest', async (req, res) => {
   try {
     const response = await axios.get(`${address}file/manifest`);
