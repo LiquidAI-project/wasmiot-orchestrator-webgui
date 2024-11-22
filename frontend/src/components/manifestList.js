@@ -112,8 +112,7 @@ function ManifestList({
                             disabled 
                             onClick={() => handleManifestDelete(manifest._id)}
                         > 
-                        <DeleteIcon fontSize="small" />
-                            {/* Delete {manifest.name} */}
+                            <DeleteIcon fontSize="small" />
                         </Button>
                     </AccordionDetails>
                 </Accordion>

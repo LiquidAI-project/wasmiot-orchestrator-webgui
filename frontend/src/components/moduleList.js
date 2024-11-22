@@ -7,53 +7,31 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import {fetchModules, handleModuleDelete} from '../utils';
+import Divider from '@mui/material/Divider';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 
 function ModuleList({modules, setModules}) {
 
-    // Function to fetch a list of modules
-    // TODO: Move to a separate file, duplicates of this exist elsewhere
-    // const fetchModules = async () => {
-    //     try {
-    //         const response = await axios.get('http://localhost:5001/file/module');
-    //         const newModules = response.data; 
-    //         updateModulesList(newModules);
-    //     } catch (error) {
-    //         console.error('Error fetching modules:', error);
-    //     }
-    // };
+    const [moduleCards, setModuleCards] = useState([]);
 
-    // Update the list of modules
-    // TODO: Move elsewhere, duplicates of this function exist
-    // const updateModulesList = (newModules) => {
-    //     setModules((prevModules) => {
-    //     const prevModuleIds = new Set(prevModules.map((module) => module._id));
-    //     const newModuleIds = new Set(newModules.map((module) => module._id));
-    //     const updatedModules = prevModules.filter((module) => newModuleIds.has(module._id));
-    //     newModules.forEach((newModule) => {
-    //         if (!prevModuleIds.has(newModule._id)) {
-    //         updatedModules.push(newModule);
-    //         }
-    //     });
-    //     return updatedModules;
-    //     });
-    // };
-
-    // Function to handle deletion
-    // const handleModuleDelete = async (moduleId) => {
-    //     try {
-    //         const response = await axios.delete(`http://localhost:5001/file/module/${moduleId}`);
-    //         console.log(`Deleted module with id: ${moduleId}`, response.data);
-    //     } catch (error) {
-    //         console.error(`Error deleting module with id: ${moduleId}`, error);
-    //     }
-    //     fetchModules();
-    // };
+    const fetchModuleCards = async() => {
+        const moduleCardsResponse = await axios.get('http://localhost:5001/moduleCards');
+        const fetchedLogs = moduleCardsResponse.data;
+        setModuleCards(fetchedLogs);
+    };
 
     // Populate the initial modulelist
     useEffect(() => {
         fetchModules(setModules);
+        fetchModuleCards();
     }, []);
+
+    // Update the module card list every time module list changes (means new module uploaded etc)
+    useEffect(() => {
+        fetchModuleCards();
+    }, [modules]);
 
     return (
         <>
@@ -67,15 +45,69 @@ function ModuleList({modules, setModules}) {
                         {module.name}
                     </AccordionSummary>
                     <AccordionDetails>
-                        TODO: Module details
+                        Filename: {module.wasm.originalFilename}
+                        <br/>
+                        <br/>
+                        <Accordion key={`${module._id}-accordion-inner-1`}>
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls={`${module._id}-content-inner-1`}
+                                id={`${module._id}-header-inner-1`}
+                            >
+                            Module card:
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <pre>
+                                    {(() => {
+                                        const moduleCard = moduleCards.find(card => card.moduleid === module._id);
+                                        if (moduleCard) {
+                                        return (
+                                            <>
+                                            {JSON.stringify(moduleCard, null, 2)}
+                                            </>
+                                        );
+                                        } else {
+                                        return "No module card found.";
+                                        }
+                                    })()}
+                                </pre>
+                            </AccordionDetails>
+                        </Accordion>
+                        
+                        <Divider textAlign="center"></Divider>
+                        <Accordion key={`${module._id}-accordion-inner-2`}>
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls={`${module._id}-content-inner-2`}
+                                id={`${module._id}-header-inner-2`}
+                            >
+                            Module details:
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <pre>
+                                    {JSON.stringify(module, null, 2)}
+                                </pre>
+                            </AccordionDetails>
+                        </Accordion>
+                        
+                        <Divider textAlign="center"></Divider>
                         <br/>
                         <Button 
-                        key={module._id} 
-                        variant="outlined" 
-                        color="error"
-                        onClick={() => handleModuleDelete(module._id, setModules)}
+                            variant="outlined" 
+                            size="small" 
+                            color="inherit" 
+                            disabled 
+                            sx={{ marginLeft: 'auto' }} // Align the button to the right
+                        >
+                            <EditIcon fontSize="small" />
+                        </Button>
+                        <Button 
+                            variant="outlined" 
+                            size="small" 
+                            color="inherit" 
+                            onClick={() => handleModuleDelete(module._id, setModules)}
                         > 
-                        Delete {module.name}
+                            <DeleteIcon fontSize="small" />
                         </Button>
                     </AccordionDetails>
                 </Accordion>

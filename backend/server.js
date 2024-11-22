@@ -152,6 +152,32 @@ app.post('/file/device/:id/upload/card', async (req, res) => {
 
 // MODULES
 
+app.get('/moduleCards', async (req, res) => {
+  try {
+    const response = await axios.get(`${address}moduleCards`);
+    res.json(response.data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Error getting list of module cards' });
+  }
+});
+
+app.post('/moduleCards', async (req, res) => {
+  const { id } = req.params;
+  const payload = req.body;
+
+  try {
+    const response = await axios.post(`${address}moduleCards`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error(`Error while posting a module card:`, error);
+    res.status(500).json({ error: 'Error submitting a module card.' });
+  }
+});
+
+
 app.post('/file/module',   upload.fields([{ name: 'module', maxCount: 1 }, { name: 'card', maxCount: 1 }]), async (req, res) => {
   try {
     const formData = new FormData();
