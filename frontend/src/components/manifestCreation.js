@@ -83,11 +83,8 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
             
             const validationLogsResponse = await axios.get('http://localhost:5001/deploymentCertificates');
             const validationLogs = validationLogsResponse.data;
-            console.log(validationLogs);
-            console.log(manifestId);
-
             let certificate = validationLogs.find(log => log.deploymentId === manifestId);
-            console.log(certificate);
+
             if (!certificate.valid) {
                 setValidationFailureReasoning(certificate.validationLogs);
                 setSubmissionMessage("Manifest submitted succesfully, but failed to validate.");

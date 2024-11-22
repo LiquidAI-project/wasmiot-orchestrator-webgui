@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -8,10 +8,21 @@ import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {fetchManifests, handleManifestDelete} from '../utils';
+import axios from 'axios';
+import Divider from '@mui/material/Divider';
+
 
 function ManifestList({
     manifests, setManifests, devices, setDevices, modules, setModules
 }) {
+
+    const [validationLogs, setValidationLogs] = useState([]);
+
+    const updateValidationLogs = async() => {
+        const validationLogsResponse = await axios.get('http://localhost:5001/deploymentCertificates');
+        const fetchedLogs = validationLogsResponse.data;
+        setValidationLogs(fetchedLogs);
+    };
 
     // Helper function to get the device name by ID
     const getDeviceName = (deviceId) => {
@@ -38,6 +49,10 @@ function ManifestList({
         fetchManifests(setManifests);
     }, []);
 
+    useEffect(() => {
+        updateValidationLogs();
+    }, [manifests]);
+
     return (
         <>
             {manifests.map((manifest) => (
@@ -50,7 +65,37 @@ function ManifestList({
                         {manifest.name}
                     </AccordionSummary>
                     <AccordionDetails>
-                        <pre>{createManifestDetails(manifest)}</pre> {/* Display manifest details */}
+                        {/* <Divider textAlign="center">Procedure sequence</Divider> */}
+                        
+                        <pre>
+                            Procedure sequence:<br/><br/>
+                            {createManifestDetails(manifest)}
+                        </pre>
+                        {/* <Divider textAlign="center">Validation certificate</Divider> */}
+                        <Divider textAlign="center"></Divider>
+                        <pre>
+                        Validation certificate:<br/><br/>
+                            {(() => {
+                                const validationLog = validationLogs.find(log => log.deploymentId === manifest._id);
+                                if (validationLog) {
+                                return (
+                                    <>
+                                    Validation status:{" "}
+                                    <span style={{ color: validationLog.valid ? "green" : "red" }}>
+                                        {validationLog.valid ? "valid" : "invalid"}
+                                    </span>
+                                    <br />
+                                    Validation certificate:<br />
+                                    {JSON.stringify(validationLog, null, 2)}
+                                    </>
+                                );
+                                } else {
+                                return "No validation log found.";
+                                }
+                            })()}
+                        </pre>
+                        <Divider textAlign="center"></Divider>
+                        <br/>
                         <Button 
                             variant="outlined" 
                             size="small" 
@@ -64,7 +109,7 @@ function ManifestList({
                             variant="outlined" 
                             size="small" 
                             color="inherit" 
-                            // disabled 
+                            disabled 
                             onClick={() => handleManifestDelete(manifest._id)}
                         > 
                         <DeleteIcon fontSize="small" />
