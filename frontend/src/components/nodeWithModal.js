@@ -22,10 +22,11 @@ import axios from 'axios';
 function NodeWithModal({ data, id }) {
 
   const [deviceDetails, setDeviceDetails] = useState(data.deviceDetails || {});
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [nodeCardUploadSuccess, setNodeCardUploadSuccess] = useState(false);
   const [deviceCardName, setDeviceCardName] = useState('');
   const [deviceCardFile, setDeviceCardFile] = useState(null);
-  const [error, setError] = useState(null);
+  const [nodeCardError, setNodeCardError] = useState(null);
+  const [deviceCard, setDeviceCard] = useState(null);
 
   const handleStyle = { left: 10 };
   const modalStyle = {
@@ -58,43 +59,67 @@ function NodeWithModal({ data, id }) {
   const handleReset = () => {
     setDeviceCardName('');
     setDeviceCardFile(null);
-    setUploadSuccess(false);
-    setError(null);
+    setNodeCardUploadSuccess(false);
+    setNodeCardError(null);
+  };
+
+  const fetchNodeCards = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/nodeCards');
+      return response.data;
+    } catch (error) {
+        console.error('Error fetching zones and risk levels:', error);
+    }
+  };
+
+  const updateDeviceCard = async () => {
+    let allNodeCards = await fetchNodeCards();
+    let deviceNodeCards = [];
+    for (let i = 0; i < allNodeCards.length; i++) {
+      if (allNodeCards[i].nodeid === data.deviceDetails._id) {
+        deviceNodeCards.push(allNodeCards[i]);
+      }
+    }
+    if (deviceNodeCards.length > 0) {
+      setDeviceCard(deviceNodeCards);
+      return;
+    }
+    setDeviceCard("No device/node card found");
   };
 
   useEffect(() => {
     async function postDeviceCard() {
       if (deviceCardFile === null || deviceCardFile === undefined) {
-        console.log("Device card file changed to null/undefined, not doing anything");
         return;
       }
   
-      setError(null); // Clear any existing errors
-      const formData = new FormData();
-      let deviceId = "asdf" // TODO:
-      formData.append('deviceId', deviceId); 
-      formData.append('deviceCard', deviceCardFile);
-      console.log(deviceCardFile);
-  
-      try {
-          const response = await axios.post(`http://localhost:5001/file/device/${deviceId}/upload/card`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-          });
-          setUploadSuccess(true);
-          console.log("Note: devices were not refreshed");
-          // fetchDevices(setDevices); // Refresh devices (TODO: Make sure this also refreshes the card in current node)
-      } catch (error) {
-          console.error('Error uploading the card:', error);
-          setError('Error uploading the card. Please try again.');
-          setUploadSuccess(false);
-      }
-  
-  
-      console.log("New device card file detected UwU");
+      setNodeCardError(null); // Clear any existing errors
+      let deviceId = data.deviceDetails._id;
+
+      const reader = new FileReader();     
+      reader.onload = async(e) => {
+        const jsonData = JSON.parse(e.target.result);
+        const response = await axios.post('http://localhost:5001/nodeCards', jsonData);
+        if (response.status === 200) {
+          setNodeCardError("");
+          setNodeCardUploadSuccess(true);
+          updateDeviceCard();  // Refresh device card data
+        } else {
+          setNodeCardError("Failed to submit node card");
+        }
+      };      
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+      };      
+      reader.readAsText(deviceCardFile); 
     }
     postDeviceCard()
 
   }, [deviceCardFile])
+
+  useEffect(() => {
+    updateDeviceCard();
+  }, []);
 
   return (
     <>
@@ -112,6 +137,10 @@ function NodeWithModal({ data, id }) {
         >
           <Box sx={modalStyle}>
             {/* {data.deviceDetails.name} */}
+            <pre>
+            {`Device name: ${data.deviceDetails.name}`}<br/>
+            {`Device id: ${data.deviceDetails._id}`}
+            </pre>
             {
               (data.deviceDetails.currentModule !== "" || data.deviceDetails.currentFunction !== "" || data.deviceDetails.positionInSequence !== "") ?
               <>
@@ -130,51 +159,30 @@ function NodeWithModal({ data, id }) {
               <></>
             }
             <h4>Device details:</h4>
+
             <Accordion key={`${data.deviceDetails._id}-accordion-0`}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={`${data.deviceDetails._id}-content-0`}
                 id={`${data.deviceDetails._id}-header-0`}
               >
-                <Typography component="legend">Metadata card</Typography>
+                <Typography component="legend">Node card</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                Current card:
-                <pre>{JSON.stringify(data.deviceDetails.metadataCard, null, 2) }</pre>
+                Current node card:
+                <pre>
+                  {deviceCard && JSON.stringify(deviceCard, null, 2) }
+                </pre>
                 <br/>
-
-                {/* <Button type="submit" endIcon={<PublishIcon />} fullWidth variant="outlined" color="primary" sx={{ marginTop: 2 }}>
-                  Upload a new metadata card
-                </Button> */}
-
-                {/* <Box component="form" onSubmit={handleDeviceCardSubmit}> */}
                 <Box component="form">
-                  {uploadSuccess && (
-                      <Alert
-                          severity="success"
-                          // action={
-                          //     <Button color="inherit" size="small" onClick={handleReset}>
-                          //         Upload Another
-                          //     </Button>
-                          // }
-                      >
+                  {nodeCardUploadSuccess && (
+                      <Alert severity="success">
                           Card uploaded successfully!
                       </Alert>
                   )}
-                  {error && <Alert severity="error">{error}</Alert>}
-
-                  {!uploadSuccess && (
+                  {nodeCardError && <Alert severity="error">{nodeCardError}</Alert>}
+                  {!nodeCardUploadSuccess && (
                       <>
-                          {/* <TextField
-                              required
-                              id="module-name"
-                              label="Module name"
-                              value={moduleName}
-                              onChange={(e) => setModuleName(e.target.value)}
-                              variant="standard"
-                              fullWidth
-                              margin="normal"
-                          /> */}
                           <Box sx={{ display: 'flex', alignItems: 'left' }}>
                               <Button
                                   variant="outlined"
@@ -190,25 +198,25 @@ function NodeWithModal({ data, id }) {
                               </Button>
                               {deviceCardFile && <Box sx={{ ml: 2 }}>Selected file: {deviceCardFile.name}</Box>}
                           </Box>
-
-                          {/* <Box sx={{ mt: 2 }}>
-                              <Button
-                                  type="submit"
-                                  variant="outlined"
-                                  endIcon={<ArrowForwardIosIcon />}
-                              >
-                                  Submit
-                              </Button>
-                          </Box> */}
                       </>
                   )}
                 </Box>
+              </AccordionDetails>
+            </Accordion>
 
-
-
+            <Accordion key={`${data.deviceDetails._id}-accordion-00`}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls={`${data.deviceDetails._id}-content-00`}
+                id={`${data.deviceDetails._id}-header-00`}
+              >
+                <Typography component="legend">Datasource cards</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
 
               </AccordionDetails>
             </Accordion>
+
             <Accordion key={`${data.deviceDetails._id}-accordion-1`}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}

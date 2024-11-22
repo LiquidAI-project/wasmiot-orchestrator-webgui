@@ -19,6 +19,31 @@ const upload = multer();
 
 // DEVICES
 
+app.get('/nodeCards', async (req, res) => { // TODO: Add support for liming by date, like /nodeCards?date=2021-01-01T00:00:00.000Z
+  try {
+    const response = await axios.get(`${address}nodeCards`);
+    res.json(response.data);
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({error: "Error getting node cards"});
+  }
+});
+
+app.post('/nodeCards', async (req, res) => {
+  const { id } = req.params;
+  const payload = req.body;
+
+  try {
+    const response = await axios.post(`${address}nodeCards`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error(`Error while posting a node card:`, error);
+    res.status(500).json({ error: 'Error submitting a node card.' });
+  }
+});
+
 app.get('/zoneRiskLevels', async (req, res) => {
   try {
     const response = await axios.get(`${address}zoneRiskLevels`);
