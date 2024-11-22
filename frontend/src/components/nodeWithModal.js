@@ -130,6 +130,9 @@ function NodeWithModal({ data, id }) {
       const reader = new FileReader();     
       reader.onload = async(e) => {
         const jsonData = JSON.parse(e.target.result);
+        for (let i = 0; i < jsonData.asset.length; i++){
+          jsonData.asset[i].uid = deviceId;
+        }
         const response = await axios.post('http://localhost:5001/nodeCards', jsonData);
         if (response.status === 200) {
           setNodeCardError("");
@@ -161,6 +164,13 @@ function NodeWithModal({ data, id }) {
       const reader = new FileReader();     
       reader.onload = async(e) => {
         const jsonData = JSON.parse(e.target.result);
+        for (let i = 0; i < jsonData.asset.length; i++){
+          for (let j = 0; j < jsonData.asset[i].relation.length; j++) {
+            if (jsonData.asset[i].relation[j].type === "nodeid") {
+              jsonData.asset[i].relation[j].value = deviceId;
+            }
+          }
+        }
         const response = await axios.post('http://localhost:5001/dataSourceCards', jsonData);
         if (response.status === 200) {
           setDataSourceCardError("");

@@ -122,11 +122,11 @@ export default function App() {
                 module={modules} setModules={setModules} 
                 selectedDeployment={setSelectedDeployment} setSelectedDeployment={setSelectedDeployment}
               />
+              <Divider textAlign='center'><b>Zones and risk levels</b></Divider>
+              <ZoneInterface zonesAndRiskLevels={zonesAndRiskLevels} setZonesAndRiskLevels={setZonesAndRiskLevels}/>
               <Divider textAlign="center"><b>View controls</b></Divider>
               <OpacitySlider />
               <BackgroundUpdater/>
-              <Divider textAlign='center'><b>Zones and risk levels</b></Divider>
-              <ZoneInterface zonesAndRiskLevels={zonesAndRiskLevels} setZonesAndRiskLevels={setZonesAndRiskLevels}/>
               <Divider textAlign="center"><b>Actions</b></Divider>
               <ResetDeviceDiscoveryButton />
               <DeleteAllDevicesButton />
