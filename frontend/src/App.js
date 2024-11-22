@@ -28,8 +28,9 @@ import { styled } from '@mui/material/styles';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import OpacitySlider from './components/opacitySlider'
-import BackgroundUpdater from './components/backgroundUpdater'
+import OpacitySlider from './components/opacitySlider';
+import BackgroundUpdater from './components/backgroundUpdater';
+import ZoneInterface from './components/zoneInterface';
 import { 
   useNodesState, 
   useEdgesState, 
@@ -82,6 +83,7 @@ export default function App() {
   const [selectedDeployment, setSelectedDeployment] = useState(null); // Currently selected deployment to be executed (used for the visualization)
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [zonesAndRiskLevels, setZonesAndRiskLevels] = useState([]);
 
   // Handles changing a tab
   const handleChange = (event, newValue) => {
@@ -109,6 +111,7 @@ export default function App() {
                 maxHeight: 'calc(100vh - 150px)', // Adjust the height as needed
                 overflowY: 'auto', // Enables scrolling when content overflows
                 paddingRight: 1, // Optional: To prevent scroll bar overlap
+                borderRight: 1
               }}
             >
               <Divider textAlign="center"><b>Deploy</b></Divider>
@@ -122,6 +125,8 @@ export default function App() {
               <Divider textAlign="center"><b>View controls</b></Divider>
               <OpacitySlider />
               <BackgroundUpdater/>
+              <Divider textAlign='center'><b>Zones and risk levels</b></Divider>
+              <ZoneInterface zonesAndRiskLevels={zonesAndRiskLevels} setZonesAndRiskLevels={setZonesAndRiskLevels}/>
               <Divider textAlign="center"><b>Actions</b></Divider>
               <ResetDeviceDiscoveryButton />
               <DeleteAllDevicesButton />
@@ -129,6 +134,7 @@ export default function App() {
               <DeleteAllManifestsButton />
             </Box>
           </Grid>
+          
           <Grid size={{ xs: 6, md: 8 }}>
             <DeviceMap 
               devices={devices} setDevices={setDevices}

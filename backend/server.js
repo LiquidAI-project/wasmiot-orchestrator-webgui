@@ -5,6 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 const FormData = require('form-data');
 const multer = require('multer'); // Middleware for handling file uploads
+const { Console } = require('console');
 const app = express();
 const port = process.env.BACKEND_PORT || 5001;
 const address = process.env.ORCHESTRATOR_ADDRESS || "http://localhost:3000/";
@@ -18,11 +19,37 @@ const upload = multer();
 
 // DEVICES
 
+app.get('/zoneRiskLevels', async (req, res) => {
+  try {
+    const response = await axios.get(`${address}zoneRiskLevels`);
+    res.json(response.data);
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({error: "Error getting zones and risk levels"});
+  }
+});
+
+app.post('/zoneRiskLevels', async (req, res) => {
+  const { id } = req.params;
+  const payload = req.body;
+
+  try {
+    const response = await axios.post(`${address}zoneRiskLevels`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error(`Error while posting zone risk levels:`, error);
+    res.status(500).json({ error: 'Error submitting zones and risk levels.' });
+  }
+});
+
 app.get('/file/device', async (req, res) => {
   try {
     const response = await axios.get(`${address}file/device`);
     res.json(response.data);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Error getting a list of devices' });
   }
 });
@@ -32,6 +59,7 @@ app.delete('/file/device', async (req, res) => {
     const response = await axios.delete(`${address}file/device`);
     res.json(response.data);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Error deleting all devices' });
   }
 });
