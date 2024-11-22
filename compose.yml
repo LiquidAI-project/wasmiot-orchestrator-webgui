@@ -9,6 +9,8 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - ./backend:/app/backend
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
     environment:
       - PORT=${FRONTEND_PORT}
       # - BACKEND_PORT=${BACKEND_PORT}
