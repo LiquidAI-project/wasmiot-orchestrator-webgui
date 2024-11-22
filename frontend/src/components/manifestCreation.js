@@ -202,7 +202,7 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
                         Create another manifest
                     </Button>
                 }>
-                    {{submissionMessage}}
+                    { submissionMessage }
                 </Alert>
             )}
             {submissionStatus === 2 && (

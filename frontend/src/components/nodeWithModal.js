@@ -22,11 +22,18 @@ import axios from 'axios';
 function NodeWithModal({ data, id }) {
 
   const [deviceDetails, setDeviceDetails] = useState(data.deviceDetails || {});
+
   const [nodeCardUploadSuccess, setNodeCardUploadSuccess] = useState(false);
   const [deviceCardName, setDeviceCardName] = useState('');
   const [deviceCardFile, setDeviceCardFile] = useState(null);
   const [nodeCardError, setNodeCardError] = useState(null);
   const [deviceCard, setDeviceCard] = useState(null);
+
+  const [dataSourceCardUploadSuccess, setDataSourceCardUploadSuccess] = useState(false);
+  const [dataSourceCardName, setDataSourceCardName] = useState('');
+  const [dataSourceCardFile, setDataSourceCardFile] = useState(null);
+  const [dataSourceCardError, setDataSourceCardError] = useState(null);
+  const [dataSourceCard, setDataSourceCard] = useState(null);
 
   const handleStyle = { left: 10 };
   const modalStyle = {
@@ -56,12 +63,12 @@ function NodeWithModal({ data, id }) {
   const handleClose = () => setOpen(false);
 
   // Reset form fields
-  const handleReset = () => {
-    setDeviceCardName('');
-    setDeviceCardFile(null);
-    setNodeCardUploadSuccess(false);
-    setNodeCardError(null);
-  };
+  // const handleReset = () => {
+  //   setDeviceCardName('');
+  //   setDeviceCardFile(null);
+  //   setNodeCardUploadSuccess(false);
+  //   setNodeCardError(null);
+  // };
 
   const fetchNodeCards = async () => {
     try {
@@ -85,6 +92,30 @@ function NodeWithModal({ data, id }) {
       return;
     }
     setDeviceCard("No device/node card found");
+  };
+
+  const fetchDataSourceCards = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/dataSourceCards');
+      return response.data;
+    } catch (e) {
+      console.error('Error fetching datasource cards', e);
+    }
+  }
+
+  const updateDataSourceCard = async () => {
+    let allDataSourceCards = await fetchDataSourceCards();
+    let deviceDataSourceCards = [];
+    for (let i = 0; i < allDataSourceCards.length; i++) {
+      if (allDataSourceCards[i].nodeid === data.deviceDetails._id) {
+        deviceDataSourceCards.push(allDataSourceCards[i]);
+      }
+    }
+    if (deviceDataSourceCards.length > 0) {
+      setDataSourceCard(deviceDataSourceCards);
+      return;
+    }
+    setDataSourceCard("No datasource cards found for this device");
   };
 
   useEffect(() => {
@@ -117,8 +148,41 @@ function NodeWithModal({ data, id }) {
 
   }, [deviceCardFile])
 
+
+  useEffect(() => {
+    async function postDataSourceCard() {
+      if (dataSourceCardFile === null || dataSourceCardFile === undefined) {
+        return;
+      }
+  
+      setDataSourceCardError(null); // Clear any existing errors
+      let deviceId = data.deviceDetails._id;
+
+      const reader = new FileReader();     
+      reader.onload = async(e) => {
+        const jsonData = JSON.parse(e.target.result);
+        const response = await axios.post('http://localhost:5001/dataSourceCards', jsonData);
+        if (response.status === 200) {
+          setDataSourceCardError("");
+          setDataSourceCardUploadSuccess(true);
+          updateDataSourceCard();  // Refresh device datasource card data
+        } else {
+          setDataSourceCardError("Failed to submit datasource card");
+        }
+      };      
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+      };      
+      reader.readAsText(dataSourceCardFile); 
+    }
+    postDataSourceCard()
+
+  }, [dataSourceCardFile])
+
+
   useEffect(() => {
     updateDeviceCard();
+    updateDataSourceCard();
   }, []);
 
   return (
@@ -169,7 +233,7 @@ function NodeWithModal({ data, id }) {
                 <Typography component="legend">Node card</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                Current node card:
+                Current node card fr this device:
                 <pre>
                   {deviceCard && JSON.stringify(deviceCard, null, 2) }
                 </pre>
@@ -213,7 +277,38 @@ function NodeWithModal({ data, id }) {
                 <Typography component="legend">Datasource cards</Typography>
               </AccordionSummary>
               <AccordionDetails>
-
+              Current datasource cards for this device:
+                <pre>
+                  {dataSourceCard && JSON.stringify(dataSourceCard, null, 2) }
+                </pre>
+                <br/>
+                <Box component="form">
+                  {dataSourceCardUploadSuccess && (
+                      <Alert severity="success">
+                          Datasource card uploaded successfully!
+                      </Alert>
+                  )}
+                  {dataSourceCardError && <Alert severity="error">{dataSourceCardError}</Alert>}
+                  {!dataSourceCardUploadSuccess && (
+                      <>
+                          <Box sx={{ display: 'flex', alignItems: 'left' }}>
+                              <Button
+                                  variant="outlined"
+                                  fullWidth
+                                  component="label"
+                                  endIcon={<PublishIcon />}
+                              >
+                                  Upload new datasource card
+                                  <VisuallyHiddenInput
+                                      type="file"
+                                      onChange={(e) => setDataSourceCardFile(e.target.files[0])}
+                                  />
+                              </Button>
+                              {dataSourceCardFile && <Box sx={{ ml: 2 }}>Selected file: {dataSourceCardFile.name}</Box>}
+                          </Box>
+                      </>
+                  )}
+                </Box>
               </AccordionDetails>
             </Accordion>
 
