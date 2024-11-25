@@ -84,6 +84,8 @@ export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [zonesAndRiskLevels, setZonesAndRiskLevels] = useState([]);
+  const [backgroundUrl, setBackgroundUrl] = useState("https://puheviestinnanpaivat2014.wordpress.com/wp-content/uploads/2014/03/agora-1-krs-aula-auditorio-2-alfa.jpg");
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0)
 
   // Handles changing a tab
   const handleChange = (event, newValue) => {
@@ -125,8 +127,10 @@ export default function App() {
               <Divider textAlign='center'><b>Zones and risk levels</b></Divider>
               <ZoneInterface zonesAndRiskLevels={zonesAndRiskLevels} setZonesAndRiskLevels={setZonesAndRiskLevels}/>
               <Divider textAlign="center"><b>View controls</b></Divider>
-              <OpacitySlider />
-              <BackgroundUpdater/>
+              <OpacitySlider backgroundOpacity={backgroundOpacity} setBackgroundOpacity={setBackgroundOpacity}/>
+              <BackgroundUpdater backgroundUrl={backgroundUrl} setBackgroundUrl={setBackgroundUrl}/>
+              <Divider textAlign='center'><b>Zones and risk levels</b></Divider>
+              <ZoneInterface zonesAndRiskLevels={zonesAndRiskLevels} setZonesAndRiskLevels={setZonesAndRiskLevels}/>
               <Divider textAlign="center"><b>Actions</b></Divider>
               <ResetDeviceDiscoveryButton />
               <DeleteAllDevicesButton />

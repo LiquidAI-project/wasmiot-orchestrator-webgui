@@ -73,13 +73,28 @@ function OpacitySlider({backgroundOpacity, setBackgroundOpacity}) {
         }
     };
 
+	const commitSliderChange = (event, newValue) => {
+		setBackgroundOpacity(newValue);
+	};
+
+    // Set opacity during component load
+    React.useEffect(() => {
+      handleSliderChange(undefined, backgroundOpacity);
+    }, []);
+
     return (
         <>
         {/* <Box sx={{ width: 320, display: 'flex', alignItems: 'center' }}> */}
         <Box sx={{ alignItems: 'center', p: 2 }}>
             <Typography sx={{ mr: 2 }}>Background opacity</Typography>
             <br/>
-            <CustomSlider aria-label="opacity slider" defaultValue={0} valueLabelDisplay="on" onChange={handleSliderChange}/>
+            <CustomSlider 
+				aria-label="opacity slider" 
+				defaultValue={backgroundOpacity} 
+				valueLabelDisplay="on" 
+				onChange={handleSliderChange} 
+				onChangeCommitted={commitSliderChange}
+			/>
         </Box>
     </>
     );
