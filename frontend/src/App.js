@@ -86,6 +86,7 @@ export default function App() {
   const [zonesAndRiskLevels, setZonesAndRiskLevels] = useState([]);
   const [backgroundUrl, setBackgroundUrl] = useState("https://puheviestinnanpaivat2014.wordpress.com/wp-content/uploads/2014/03/agora-1-krs-aula-auditorio-2-alfa.jpg");
   const [backgroundOpacity, setBackgroundOpacity] = useState(0)
+  const [viewportState, setViewportState] = useState({x: 450, y: 150, zoom:1});
 
   // Handles changing a tab
   const handleChange = (event, newValue) => {
@@ -146,6 +147,7 @@ export default function App() {
               modules={modules} setModules={setModules}
               nodes={nodes} setNodes={setNodes} onNodesChange={onNodesChange}
               edges={edges} setEdges={setEdges} onEdgesChange={onEdgesChange}
+              viewportState={viewportState} setViewportState={setViewportState}
             />
           </Grid>
         </Grid>

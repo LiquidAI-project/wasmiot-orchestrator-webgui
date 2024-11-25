@@ -21,6 +21,7 @@ import { fetchDevices, fetchModules } from '../utils';
 import NodeWithModal from './nodeWithModal';
 import FloatingEdge from './floatingEdge';
 import FloatingConnectionLine from './floatingConnectionLine';
+import { useOnViewportChange } from '@xyflow/react';
 
 
 function DeviceMap({ 
@@ -28,7 +29,8 @@ function DeviceMap({
     selectedDeployment, setSelectedDeployment, 
     modules, setModules, 
     nodes, setNodes, onNodesChange, 
-    edges, setEdges, onEdgesChange 
+    edges, setEdges, onEdgesChange,
+    viewportState, setViewportState
 }) {
     const nodeTypes = { nodeWithModal: NodeWithModal };
     const edgeTypes = { floating: FloatingEdge };
@@ -284,6 +286,10 @@ function DeviceMap({
         setNodes(nodes);
 
     }, [selectedDeployment]);
+    
+    const handleViewportChange = (viewport) => {
+        setViewportState(viewport);
+    };
 
     return (
         <div id="app">
@@ -296,7 +302,9 @@ function DeviceMap({
                 edgeTypes={edgeTypes}
                 onConnect={onConnect}
                 connectionLineComponent={FloatingConnectionLine}
-                fitView
+                defaultViewport = {viewportState}
+
+                onViewportChange={handleViewportChange}
             >
                 {/* <Background style = { { backgroundImage: 'url("https://puheviestinnanpaivat2014.wordpress.com/wp-content/uploads/2014/03/agora-1-krs-aula-auditorio-2-alfa.jpg")'}}/> */}
                 <Background />
