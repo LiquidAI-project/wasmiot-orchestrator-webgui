@@ -243,7 +243,7 @@ function NodeWithModal({ data, id }) {
                 <Typography component="legend">Node card</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                Current node card fr this device:
+                Current node card for this device:
                 <pre>
                   {deviceCard && JSON.stringify(deviceCard, null, 2) }
                 </pre>

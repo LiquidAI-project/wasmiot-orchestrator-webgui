@@ -10,6 +10,7 @@ import {fetchModules, handleModuleDelete} from '../utils';
 import Divider from '@mui/material/Divider';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ModuleListItem from './moduleListItem';
 
 
 function ModuleList({modules, setModules}) {
@@ -34,6 +35,21 @@ function ModuleList({modules, setModules}) {
     }, [modules]);
 
     return (
+        <>
+            {modules.map((module) => (
+                <ModuleListItem 
+                    module={module} 
+                    moduleCard={moduleCards.find(card => card.moduleid === module._id)}
+                    modules={modules}
+                    setModules={setModules}
+                    moduleCards={moduleCards}
+                    setModuleCards={setModuleCards}
+                />
+            ))}
+        </>
+    );
+    
+/*     return (
         <>
             {modules.map((module) => (
                 <Accordion key={`${module._id}-accordion`}>
@@ -113,7 +129,7 @@ function ModuleList({modules, setModules}) {
                 </Accordion>
             ))}
         </>
-    )
+    ) */
 }
 
 export default ModuleList;
