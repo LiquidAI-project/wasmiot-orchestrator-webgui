@@ -1,6 +1,10 @@
+// React imports
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+
+// MUI imports
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import {
     MenuItem,
     Select,
@@ -13,8 +17,9 @@ import {
     IconButton,
     Alert
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+
+// Miscellaneous imports
+import axios from 'axios';
 
 function ModuleDescription({
     moduleId, setModuleId, 
@@ -27,6 +32,7 @@ function ModuleDescription({
     const [error, setError] = useState(null); // State for error message
     const [moduleName, setModuleName] = useState(''); // State for storing the module name
 
+    // Updates the selected module and fetches its description
     const handleModuleChange = (event) => {
         const selectedId = event.target.value;
         setSelectedModuleId(selectedId);
@@ -34,12 +40,13 @@ function ModuleDescription({
         setIsSubmitted(false);
     };
 
+    // Fetch module description when a module is selected
     useEffect(() => {
         if (!selectedModuleId) return;
 
         const fetchModuleDescription = async () => {
             try {
-                const response = await axios.get(`http://localhost:5001/file/module/${selectedModuleId}`);
+                const response = await axios.get(`file/module/${selectedModuleId}`);
                 setModuleDescription(response.data[0]);
                 setModuleName(response.data[0]?.name || ''); // Update the module name
                 console.log("Fetched module description:", response.data[0]);
@@ -52,20 +59,23 @@ function ModuleDescription({
         fetchModuleDescription();
     }, [selectedModuleId]);
 
+    // Pre-fills module ID if provided initially
     useEffect(() => {
         if (moduleId) {
             setSelectedModuleId(moduleId);
         }
     }, [moduleId]);
 
+    // Generates form fields dynamically from the module description
     useEffect(() => {
         if (moduleDescription && moduleDescription.exports) {
-            const newFormFields = moduleDescription.exports.map((exportItem, index) => ({
+            const newFormFields = moduleDescription.exports.map((exportItem) => ({
                 name: exportItem.name,
                 parameterCount: exportItem.parameterCount,
                 method: "GET",
                 mountName: "",
-                mounts: []
+                mounts: [],
+                output: "integer" // Default output type
             }));
             setFormFields(newFormFields);
         } else {
@@ -73,6 +83,7 @@ function ModuleDescription({
         }
     }, [moduleDescription]);
 
+    // Updates HTTP method for a specific field
     const handleMethodChange = (index, newMethod) => {
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
@@ -81,6 +92,16 @@ function ModuleDescription({
         });
     };
 
+    // Updates the output type for a specific field
+    const handleOutputChange = (index, newOutput) => {
+        setFormFields((prevFields) => {
+            const updatedFields = [...prevFields];
+            updatedFields[index].output = newOutput;
+            return updatedFields;
+        });
+    };
+
+    // Updates the temporary input for mount name
     const handleMountNameChange = (index, newMountName) => {
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
@@ -89,19 +110,21 @@ function ModuleDescription({
         });
     };
 
+    // Adds a new mount with a default type and clears the input
     const addMount = (index) => {
         const mountName = formFields[index].mountName;
         if (!mountName) return;
 
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
-            const newMount = { name: mountName, type: "Deployment", file: null };
+            const newMount = { name: mountName, type: "deployment", file: null };
             updatedFields[index].mounts = [...updatedFields[index].mounts, newMount];
             updatedFields[index].mountName = "";
             return updatedFields;
         });
     };
 
+    // Updates the mount type for a specific mount
     const handleMountTypeChange = (fieldIndex, mountIndex, newType) => {
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
@@ -110,6 +133,7 @@ function ModuleDescription({
         });
     };
 
+    // Updates the file for a specific mount
     const handleFileChange = (fieldIndex, mountIndex, file) => {
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
@@ -118,6 +142,7 @@ function ModuleDescription({
         });
     };
 
+    // Removes a specific mount
     const removeMount = (fieldIndex, mountIndex) => {
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
@@ -126,33 +151,54 @@ function ModuleDescription({
         });
     };
 
+    // Prepares and submits the form data
     const handleSubmit = async (event) => {
         event.preventDefault();
         const formData = new FormData();
 
         formFields.forEach((field, fieldIndex) => {
+            // Not sure if the orderind of items matters for orchestrator, but these
+            // are ordered in a way to replicate the original version as closely as possible
             const prefix = `${field.name}`;
-            formData.append(`${prefix}[method]`, field.method);
-            formData.append(`${prefix}[mountName]`, field.mountName);
 
             for (let i = 0; i < field.parameterCount; i++) {
                 formData.append(`${prefix}[param${i}]`, "integer");
             }
-            formData.append(`${prefix}[output]`, "integer");
 
+            formData.append(`${prefix}[output]`, field.output);
+            formData.append(`${prefix}[method]`, field.method);
+            
+            let mountName = undefined;
+            let stage = undefined;
             field.mounts.forEach((mount, mountIndex) => {
                 const mountPrefix = `${prefix}[mounts][${mountIndex}]`;
                 formData.append(`${mountPrefix}[name]`, mount.name);
                 formData.append(`${mountPrefix}[stage]`, mount.type);
+                mountName = mount.name;
+                stage = mount.type;
                 if (mount.file) {
                     formData.append(mount.name, mount.file);
+                } else {
+                    formData.append(mount.name, undefined);
                 }
             });
+
+            // Add mount name and stage fields
+            // TODO: Test if the deployment/execution etc work correctly without these fields
+            if (mountName === undefined) {
+                formData.append(`${prefix}[mountName]`, field.mountName);
+            } else {
+                formData.append(`${prefix}[mountName]`, mountName);
+            }
+            if (stage !== undefined) {
+                formData.append(`${prefix}[stage]`, stage);
+            }
+            
             setSelectedModuleId('');
         });
 
         try {
-            const response = await axios.post(`http://localhost:5001/file/module/${selectedModuleId}/upload`, formData, {
+            const response = await axios.post(`file/module/${selectedModuleId}/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             console.log("Form submitted successfully:", response.data);
@@ -183,9 +229,9 @@ function ModuleDescription({
                 </Select>
             </FormControl>
 
-            {error && <Alert severity="error" sx={{ mt: 2 }} onClose={()=>{setError(null);}}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mt: 2 }} onClose={() => { setError(null); }}>{error}</Alert>}
             {isSubmitted && (
-                <Alert severity="success" sx={{ mt: 2 }} onClose={()=>{setIsSubmitted(false);}}>
+                <Alert severity="success" sx={{ mt: 2 }} onClose={() => { setIsSubmitted(false); }}>
                     Description for {moduleName} has been successfully uploaded!
                 </Alert>
             )}
@@ -217,12 +263,19 @@ function ModuleDescription({
                                 />
                             ))}
 
-                            <TextField
-                                label="Output"
-                                defaultValue="integer"
-                                fullWidth
-                                margin="dense"
-                            />
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel>Output</InputLabel>
+                                <Select
+                                    value={field.output}
+                                    onChange={(e) => handleOutputChange(fieldIndex, e.target.value)}
+                                >
+                                    <MenuItem value="integer">integer</MenuItem>
+                                    <MenuItem value="string">string</MenuItem>
+                                    <MenuItem value="image/jpeg">image/jpeg</MenuItem>
+                                    <MenuItem value="image/jpg">image/jpg</MenuItem>
+                                    <MenuItem value="image/png">image/png</MenuItem>
+                                </Select>
+                            </FormControl>
 
                             {field.mounts.map((mount, mountIndex) => (
                                 <Box key={`${mount.name}-${mountIndex}`} component="fieldset" sx={{ border: '1px solid #ccc', padding: 2, marginTop: 2 }}>
@@ -258,9 +311,9 @@ function ModuleDescription({
                                             value={mount.type}
                                             onChange={(e) => handleMountTypeChange(fieldIndex, mountIndex, e.target.value)}
                                         >
-                                            <MenuItem value="Deployment">Deployment</MenuItem>
-                                            <MenuItem value="Execution">Execution</MenuItem>
-                                            <MenuItem value="Output">Output</MenuItem>
+                                            <MenuItem value="deployment">deployment</MenuItem>
+                                            <MenuItem value="execution">execution</MenuItem>
+                                            <MenuItem value="output">output</MenuItem>
                                         </Select>
                                     </FormControl>
 
@@ -284,11 +337,9 @@ function ModuleDescription({
                         </Box>
                     ))}
 
-                    {selectedModuleId && (
-                        <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
-                            Submit
-                        </Button>
-                    )}
+                    <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2 }}>
+                        Submit
+                    </Button>
                 </>
             )}
         </Box>

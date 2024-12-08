@@ -5,16 +5,11 @@ services:
     build: .
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}" # Frontend server
-      - "${BACKEND_PORT}:${BACKEND_PORT}" # Backend server
     volumes:
       - ./frontend:/app/frontend
-      - ./backend:/app/backend
-      - /app/backend/node_modules
       - /app/frontend/node_modules
     environment:
       - PORT=${FRONTEND_PORT}
-      # - BACKEND_PORT=${BACKEND_PORT}
-      - ORCHESTRATOR_ADDRESS=${ORCHESTRATOR_ADDRESS}
 
 networks:
   default:

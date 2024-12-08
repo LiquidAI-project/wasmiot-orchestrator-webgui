@@ -8,7 +8,7 @@ function DeleteAllDevicesButton() {
 
     const handleDeleteDevices = async () => {
         try {
-            const response = await axios.delete('http://localhost:5001/file/device/');
+            const response = await axios.delete('file/device/');
 
             // Success response
             setStatusMessage(`Deleted ${response.data.deletedCount} devices successfully.`);

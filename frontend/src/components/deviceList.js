@@ -23,7 +23,7 @@ function DeviceList({devices, setDevices}) {
     // Function to fetch devices from the backend periodically
     const fetchDevices = async () => {
         try {
-        const response = await axios.get('http://localhost:5001/file/device');
+        const response = await axios.get('file/device');
         const newDevices = response.data; // Assuming the data is a list of device objects with name and _id
         updateDevicesList(newDevices);
         } catch (error) {

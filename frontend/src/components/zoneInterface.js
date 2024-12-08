@@ -24,7 +24,7 @@ function ZoneInterface({ zonesAndRiskLevels, setZonesAndRiskLevels }) {
 
     const fetchZoneRiskLevels = async () => {
         try {
-            const response = await axios.get('http://localhost:5001/zoneRiskLevels');
+            const response = await axios.get('zoneRiskLevels');
             setZonesAndRiskLevels(response.data);
         } catch (error) {
             console.error('Error fetching zones and risk levels:', error);
@@ -42,7 +42,7 @@ function ZoneInterface({ zonesAndRiskLevels, setZonesAndRiskLevels }) {
         reader.onload = async (event) => {
             try {
                 const jsonData = JSON.parse(event.target.result);
-                const response = await axios.post('http://localhost:5001/zoneRiskLevels', jsonData);
+                const response = await axios.post('zoneRiskLevels', jsonData);
                 if (response.status === 200) {
                     setIsSubmitted(true);
                     setError("");

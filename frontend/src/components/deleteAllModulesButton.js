@@ -8,7 +8,7 @@ function DeleteAllModulesButton() {
 
     const handleDeleteModules = async () => {
         try {
-            const response = await axios.delete('http://localhost:5001/file/module/');
+            const response = await axios.delete('file/module/');
 
             // Success response
             setStatusMessage(`Deleted ${response.data.deletedCount} modules successfully.`);

@@ -77,11 +77,11 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
         const payload = { name: manifestName, sequence };
 
         try {
-            const response = await axios.post('http://localhost:5001/file/manifest', payload);
+            const response = await axios.post('file/manifest', payload);
             const manifestId = response.data;
             fetchManifests(setManifests);
             
-            const validationLogsResponse = await axios.get('http://localhost:5001/deploymentCertificates');
+            const validationLogsResponse = await axios.get('deploymentCertificates');
             const validationLogs = validationLogsResponse.data;
             let certificate = validationLogs.find(log => log.deploymentId === manifestId);
 

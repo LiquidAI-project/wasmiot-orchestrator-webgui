@@ -23,7 +23,7 @@ function ModuleListItem({module, moduleCard, modules, setModules, moduleCards, s
     const [error, setError] = useState("");
 
     const fetchModuleCards = async() => {
-        const moduleCardsResponse = await axios.get('http://localhost:5001/moduleCards');
+        const moduleCardsResponse = await axios.get('moduleCards');
         const fetchedLogs = moduleCardsResponse.data;
         setModuleCards(fetchedLogs);
     };
@@ -58,7 +58,7 @@ function ModuleListItem({module, moduleCard, modules, setModules, moduleCards, s
                         jsonData.permission[i].target = module._id;
                     }
                     console.log(jsonData);
-                    const response2 = await axios.post('http://localhost:5001/moduleCards', jsonData);
+                    const response2 = await axios.post('moduleCards', jsonData);
                     if (response2.status === 200) {
                         setUploadSuccess(true);
                         fetchModuleCards();

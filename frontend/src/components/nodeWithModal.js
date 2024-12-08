@@ -72,7 +72,7 @@ function NodeWithModal({ data, id }) {
 
   const fetchNodeCards = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/nodeCards');
+      const response = await axios.get('nodeCards');
       return response.data;
     } catch (error) {
         console.error('Error fetching zones and risk levels:', error);
@@ -96,7 +96,7 @@ function NodeWithModal({ data, id }) {
 
   const fetchDataSourceCards = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/dataSourceCards');
+      const response = await axios.get('dataSourceCards');
       return response.data;
     } catch (e) {
       console.error('Error fetching datasource cards', e);
@@ -133,7 +133,7 @@ function NodeWithModal({ data, id }) {
         for (let i = 0; i < jsonData.asset.length; i++){
           jsonData.asset[i].uid = deviceId;
         }
-        const response = await axios.post('http://localhost:5001/nodeCards', jsonData);
+        const response = await axios.post('nodeCards', jsonData);
         if (response.status === 200) {
           setNodeCardError("");
           setNodeCardUploadSuccess(true);
@@ -171,7 +171,7 @@ function NodeWithModal({ data, id }) {
             }
           }
         }
-        const response = await axios.post('http://localhost:5001/dataSourceCards', jsonData);
+        const response = await axios.post('dataSourceCards', jsonData);
         if (response.status === 200) {
           setDataSourceCardError("");
           setDataSourceCardUploadSuccess(true);

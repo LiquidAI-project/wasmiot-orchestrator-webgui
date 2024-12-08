@@ -8,7 +8,7 @@ function ResetDeviceDiscoveryButton() {
 
     const handleResetDeviceDiscovery = async () => {
         try {
-            const response = await axios.post('http://localhost:5001/file/device/discovery/reset');
+            const response = await axios.post('file/device/discovery/reset');
 
             // Success response
             setStatusMessage('Device discovery reset successfully.');

@@ -19,7 +19,7 @@ function ManifestList({
     const [validationLogs, setValidationLogs] = useState([]);
 
     const updateValidationLogs = async() => {
-        const validationLogsResponse = await axios.get('http://localhost:5001/deploymentCertificates');
+        const validationLogsResponse = await axios.get('deploymentCertificates');
         const fetchedLogs = validationLogsResponse.data;
         setValidationLogs(fetchedLogs);
     };

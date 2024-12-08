@@ -8,7 +8,7 @@ function DeleteAllManifestsButton() {
 
     const handleDeleteManifests = async () => {
         try {
-            const response = await axios.delete('http://localhost:5001/file/manifest/');
+            const response = await axios.delete('file/manifest/');
 
             // Success response
             setStatusMessage(`Deleted ${response.data.deletedCount} manifests successfully.`);

@@ -18,7 +18,7 @@ function ModuleList({modules, setModules}) {
     const [moduleCards, setModuleCards] = useState([]);
 
     const fetchModuleCards = async() => {
-        const moduleCardsResponse = await axios.get('http://localhost:5001/moduleCards');
+        const moduleCardsResponse = await axios.get('moduleCards');
         const fetchedLogs = moduleCardsResponse.data;
         setModuleCards(fetchedLogs);
     };

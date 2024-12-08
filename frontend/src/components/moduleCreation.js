@@ -62,7 +62,7 @@ function ModuleCreation({
                 const formData = new FormData();
                 formData.append('name', moduleName);
                 formData.append('module', moduleFile);
-                const response1 = await axios.post('http://localhost:5001/file/module', formData, {
+                const response1 = await axios.post('file/module', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 setModuleId(response1.data.id);
@@ -76,7 +76,7 @@ function ModuleCreation({
                 console.log("Finished modifying module card, modified card:");
                 console.log(jsonData);
                 console.log("Uploading module card...");
-                const response2 = await axios.post('http://localhost:5001/moduleCards', jsonData);
+                const response2 = await axios.post('moduleCards', jsonData);
                 if (response2.status === 200) {
                     setUploadSuccess(true);
                     fetchModules(setModules);
@@ -87,7 +87,7 @@ function ModuleCreation({
                 
 
 
-                // const response = await axios.post('http://localhost:5001/nodeCards', jsonData);
+                // const response = await axios.post('nodeCards', jsonData);
                 // if (response.status === 200) {
                 // setNodeCardError("");
                 // setNodeCardUploadSuccess(true);

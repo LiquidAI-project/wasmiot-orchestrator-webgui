@@ -27,7 +27,7 @@ function Deployment({ manifests, setManifests }) {
         const payload = { id: selectedManifestId }; // Set moduleId to selectedManifestId
 
         try {
-            const response = await axios.post(`http://localhost:5001/file/manifest/${selectedManifestId}`, payload);
+            const response = await axios.post(`file/manifest/${selectedManifestId}`, payload);
             console.log("Deployment successful:", response.data);
             setIsSubmitted(true);
             setError(null); // Clear any existing error
@@ -56,7 +56,7 @@ function Deployment({ manifests, setManifests }) {
     // Fetch the list of manifests
     const fetchManifests = async () => {
         try {
-            const response = await axios.get('http://localhost:5001/file/manifest');
+            const response = await axios.get('file/manifest');
             const newManifests = response.data; 
             updateManifestsList(newManifests);
         } catch (error) {

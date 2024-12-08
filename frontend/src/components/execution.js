@@ -77,7 +77,7 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
         }
     
         try {
-            const response = await axios.post(`http://localhost:5001/execute/${selectedManifestId}`, formData, {headers:{"Content-Type":"multipart/form-data"}});
+            const response = await axios.post(`execute/${selectedManifestId}`, formData, {headers:{"Content-Type":"multipart/form-data"}});
             console.log("Execution successful:", response.data);
             setExecutionResult(response.data.result);
             setIsSubmitted(true);
