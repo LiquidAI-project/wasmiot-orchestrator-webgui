@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:3000",
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  },
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -13,6 +16,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@toolpad/core": "^0.8.1",
     "@xyflow/react": "^12.3.5",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "axios": "^1.7.7",
     "classcat": "^5.0.5",
     "nanoid": "^5.0.8",

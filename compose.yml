@@ -4,14 +4,13 @@ services:
   app:
     build: .
     ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}" # Frontend server
-    volumes:
-      - ./frontend:/app/frontend
-      - /app/frontend/node_modules
+      - 3313:3313
     environment:
-      - PORT=${FRONTEND_PORT}
+      - PORT=3313 # Used by react
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
 
 networks:
   default:
     name: wasmiot-net
     driver: bridge
+    external: true
