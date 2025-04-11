@@ -129,9 +129,18 @@ function ModuleDescription({
         setFormFields((prevFields) => {
             const updatedFields = [...prevFields];
             updatedFields[fieldIndex].mounts[mountIndex].type = newType;
+    
+            const hasOutputMount = updatedFields[fieldIndex].mounts.some(m => m.type === "output");
+    
+            if (!hasOutputMount) {
+                // Reset to default when all output mounts are gone
+                updatedFields[fieldIndex].output = "integer";
+            }
+    
             return updatedFields;
         });
     };
+    
 
     // Updates the file for a specific mount
     const handleFileChange = (fieldIndex, mountIndex, file) => {
@@ -263,53 +272,78 @@ function ModuleDescription({
                                 />
                             ))}
 
-                            <FormControl fullWidth margin="normal">
-                                <InputLabel>Output</InputLabel>
-                                <Select
-                                    value={field.output}
-                                    onChange={(e) => handleOutputChange(fieldIndex, e.target.value)}
-                                >
-                                    <MenuItem value="integer">integer</MenuItem>
-                                    <MenuItem value="string">string</MenuItem>
-                                    <MenuItem value="image/jpeg">image/jpeg</MenuItem>
-                                    <MenuItem value="image/jpg">image/jpg</MenuItem>
-                                    <MenuItem value="image/png">image/png</MenuItem>
-                                </Select>
-                            </FormControl>
+                            {!field.mounts.some((m) => m.type === "output") && (
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel>Output</InputLabel>
+                                    <Select
+                                        value={field.output}
+                                        onChange={(e) => handleOutputChange(fieldIndex, e.target.value)}
+                                    >
+                                        <MenuItem value="integer">integer</MenuItem>
+                                        <MenuItem value="string">string</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            )}
 
                             {field.mounts.map((mount, mountIndex) => (
                                 <Box key={`${mount.name}-${mountIndex}`} component="fieldset" sx={{ border: '1px solid #ccc', padding: 2, marginTop: 2 }}>
                                     <Typography component="legend">{mount.name}</Typography>
 
-                                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
-                                        <Button
-                                            variant="outlined"
-                                            component="label"
-                                            startIcon={<CloudUploadIcon />}
-                                        >
-                                            Choose file
-                                            <input
-                                                type="file"
-                                                hidden
+                                    {mount.type !== "output" ? (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
+                                            <Button
+                                                variant="outlined"
+                                                component="label"
+                                                startIcon={<CloudUploadIcon />}
+                                            >
+                                                Choose file
+                                                <input
+                                                    type="file"
+                                                    hidden
+                                                    onChange={(e) => {
+                                                        const selectedFile = e.target.files[0];
+                                                        console.log("Selected file:", selectedFile);
+                                                        handleFileChange(fieldIndex, mountIndex, selectedFile);
+                                                    }}
+                                                />
+                                            </Button>
+                                            {mount.file && (
+                                                <Typography sx={{ marginLeft: 2 }}>
+                                                    {mount.file.name} ({(mount.file.size / 1024).toFixed(2)} KB)
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    ) : (
+                                        <FormControl fullWidth margin="normal">
+                                            <InputLabel>Output MIME Type</InputLabel>
+                                            <Select
+                                                value={formFields[fieldIndex].output}
                                                 onChange={(e) => {
-                                                    const selectedFile = e.target.files[0];
-                                                    console.log("Selected file:", selectedFile);
-                                                    handleFileChange(fieldIndex, mountIndex, selectedFile);
+                                                    // Clear uploaded file if switching to output
+                                                    handleFileChange(fieldIndex, mountIndex, null);
+                                                    handleOutputChange(fieldIndex, e.target.value);
                                                 }}
-                                            />
-                                        </Button>
-                                        {mount.file && (
-                                            <Typography sx={{ marginLeft: 2 }}>
-                                                {mount.file.name} ({(mount.file.size / 1024).toFixed(2)} KB)
-                                            </Typography>
-                                        )}
-                                    </Box>
+                                            >
+                                                <MenuItem value="image/jpeg">image/jpeg</MenuItem>
+                                                <MenuItem value="image/jpg">image/jpg</MenuItem>
+                                                <MenuItem value="image/png">image/png</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    )}
 
                                     <FormControl fullWidth margin="normal">
                                         <InputLabel>Mount Type</InputLabel>
                                         <Select
                                             value={mount.type}
-                                            onChange={(e) => handleMountTypeChange(fieldIndex, mountIndex, e.target.value)}
+                                            onChange={(e) => {
+                                                const newType = e.target.value;
+                                                // Clear file if changing from a file-accepting type to output-type
+                                                if (newType === "output") {
+                                                    handleFileChange(fieldIndex, mountIndex, null);
+                                                    handleOutputChange(fieldIndex, "image/jpeg"); // set default output
+                                                }
+                                                handleMountTypeChange(fieldIndex, mountIndex, newType);
+                                            }}
                                         >
                                             <MenuItem value="deployment">deployment</MenuItem>
                                             <MenuItem value="execution">execution</MenuItem>
@@ -322,6 +356,7 @@ function ModuleDescription({
                                     </IconButton>
                                 </Box>
                             ))}
+
 
                             <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 1 }}>
                                 <TextField

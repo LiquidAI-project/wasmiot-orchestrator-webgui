@@ -33,6 +33,7 @@ function ModuleCreation({
     const handleModuleSubmit = async (event) => {
         try {
             event.preventDefault();
+    
             if (!moduleName) {
                 setError('Module name is missing, please add it');
                 setUploadSuccess(false);
@@ -43,69 +44,60 @@ function ModuleCreation({
                 setUploadSuccess(false);
                 return;
             }
-            if (!moduleCard) {
-                setError('Module metadata card is missing, please upload it');
-                setUploadSuccess(false);
-                return;
+    
+            setError(null); // Clear any existing errors
+            const formData = new FormData();
+            formData.append('name', moduleName);
+            formData.append('module', moduleFile);
+    
+            const response1 = await axios.post('file/module', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+    
+            const uploadedModuleId = response1.data.id;
+            setModuleId(uploadedModuleId);
+            console.log("Module uploaded. Module id:", uploadedModuleId);
+    
+            // If moduleCard is provided, upload it
+            if (moduleCard) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        for (let i = 0; i < jsonData.permission.length; i++) {
+                            jsonData.permission[i].target = uploadedModuleId;
+                        }
+    
+                        const response2 = await axios.post('moduleCards', jsonData);
+                        if (response2.status === 200) {
+                            setUploadSuccess(true);
+                            fetchModules(setModules);
+                        } else {
+                            setError('Module uploaded, but failed to upload metadata card.');
+                            setUploadSuccess(false);
+                        }
+                    } catch (err) {
+                        console.error("Invalid JSON in metadata card:", err);
+                        setError("Metadata card file is not valid JSON.");
+                    }
+                };
+                reader.onerror = (error) => {
+                    console.error("Error reading metadata card file:", error);
+                    setError("Error reading metadata card file.");
+                };
+                reader.readAsText(moduleCard);
+            } else {
+                // No module card: consider upload successful
+                setUploadSuccess(true);
+                fetchModules(setModules);
             }
-
-            // Convert the module card to json, throw error if it fails
-            const reader = new FileReader();
-            let jsonData = {}
-            reader.onload = async(e) => {
-                console.log("Reading json...");
-                const jsonData = JSON.parse(e.target.result);
-                console.log("Done, result:");
-                console.log(jsonData);
-                console.log("Uploading module...");
-                setError(null); // Clear any existing errors
-                const formData = new FormData();
-                formData.append('name', moduleName);
-                formData.append('module', moduleFile);
-                const response1 = await axios.post('file/module', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
-                setModuleId(response1.data.id);
-                console.log("Module uploaded. Module id:");
-                console.log(response1.data.id);
-                // Modify the uploaded card module id to match the received id, then upload the card
-                console.log("Modifying module card...");
-                for (let i = 0; i < jsonData.permission.length; i++) {
-                    jsonData.permission[i].target = response1.data.id;
-                }
-                console.log("Finished modifying module card, modified card:");
-                console.log(jsonData);
-                console.log("Uploading module card...");
-                const response2 = await axios.post('moduleCards', jsonData);
-                if (response2.status === 200) {
-                    setUploadSuccess(true);
-                    fetchModules(setModules);
-                } else {
-                    setError('Module uploaded succesfully, but failed to upload module card. Check that the card is correct.');
-                    setUploadSuccess(false);
-                }
-                
-
-
-                // const response = await axios.post('nodeCards', jsonData);
-                // if (response.status === 200) {
-                // setNodeCardError("");
-                // setNodeCardUploadSuccess(true);
-                // updateDeviceCard();  // Refresh device card data
-                // } else {
-                // setNodeCardError("Failed to submit node card");
-                // }
-            };      
-            reader.onerror = (error) => {
-                console.error("Error reading file:", error);
-            };      
-            reader.readAsText(moduleCard);
         } catch (error) {
             console.error('Error uploading the module:', error);
-            setError('Error uploading the module. Check that you uploaded corret wasm-module and module card (json).');
+            setError('Error uploading the module. Please check the file and try again.');
             setUploadSuccess(false);
         }
     };
+    
 
     // Reset form fields
     const handleReset = () => {
@@ -167,7 +159,7 @@ function ModuleCreation({
                             startIcon={<CloudUploadIcon />}
                             style={{width: "300px"}}
                         >
-                            Upload metadata card *
+                            Upload metadata card (optional)
                             <VisuallyHiddenInput
                                 type="file"
                                 onChange={(e) => setModuleCard(e.target.files[0])}
