@@ -77,9 +77,21 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
         }
     
         try {
-            const response = await axios.post(`execute/${selectedManifestId}`, formData, {headers:{"Content-Type":"multipart/form-data"}});
-            console.log("Execution successful:", response.data);
-            setExecutionResult(response.data.result);
+            const execResponse = await axios.post(`execute/${selectedManifestId}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+    
+            const resultUrl = execResponse.data.resultUrl;
+
+            if (resultUrl) {
+                const resultResponse = await axios.get(resultUrl);
+                console.log("Execution result (via resultUrl):", resultResponse.data);
+                setExecutionResult(resultResponse.data);
+            } else {
+                console.log("Execution result (inline):", execResponse.data.result);
+                setExecutionResult(execResponse.data.result ?? null);
+            }
+
             setIsSubmitted(true);
             setError(null);
         } catch (error) {
@@ -132,7 +144,9 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
                 <Alert severity="success" sx={{ marginTop: 2 }} onClose={()=>{setIsSubmitted(false);}}>
                     Successfully executed manifest "{activeManifests.find(m => m._id === selectedManifestId)?.name}"!
                     <br />
-                    Result: {JSON.stringify(executionResult, null, 2)}
+                    Result: <br></br><pre>      
+                        {JSON.stringify(executionResult, null, 2)}
+                        </pre>                    
                 </Alert>
             )}
             {error && <Alert severity="error" sx={{ marginTop: 2 }} onClose={()=>{setError(null);}}>{error}</Alert>}
