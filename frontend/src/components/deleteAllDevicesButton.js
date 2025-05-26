@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { Box, Button, Alert } from '@mui/material';
 import axios from 'axios';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function DeleteAllDevicesButton() {
     const [statusMessage, setStatusMessage] = useState(null);
     const [alertSeverity, setAlertSeverity] = useState('');
 
     const handleDeleteDevices = async () => {
         try {
-            const response = await axios.delete('file/device/');
+            const response = await axios.delete(`${baseUrl}/file/device/`);
 
             // Success response
             setStatusMessage(`Deleted ${response.data.deletedCount} devices successfully.`);

@@ -7,6 +7,8 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import axios from 'axios';
 import {fetchModules} from '../utils';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function ModuleCreation({
     modules, setModules, 
     moduleName, setModuleName, 
@@ -50,7 +52,7 @@ function ModuleCreation({
             formData.append('name', moduleName);
             formData.append('module', moduleFile);
     
-            const response1 = await axios.post('file/module', formData, {
+            const response1 = await axios.post(`${baseUrl}/file/module`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
     
@@ -68,7 +70,7 @@ function ModuleCreation({
                             jsonData.permission[i].target = uploadedModuleId;
                         }
     
-                        const response2 = await axios.post('moduleCards', jsonData);
+                        const response2 = await axios.post(`${baseUrl}/moduleCards`, jsonData);
                         if (response2.status === 200) {
                             setUploadSuccess(true);
                             fetchModules(setModules);

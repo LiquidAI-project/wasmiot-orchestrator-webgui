@@ -2,11 +2,14 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: js.Dockerfile
     ports:
-      - 3314:3314
+      - "${PORT}:${PORT}"
     environment:
-      - PORT=3314 # Used by react
+      - PORT=${PORT}
+      # - REACT_APP_API_URL=${REACT_APP_API_URL}
       - DANGEROUSLY_DISABLE_HOST_CHECK=true
 
 networks:

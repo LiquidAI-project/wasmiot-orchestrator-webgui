@@ -15,7 +15,8 @@ import { Alert } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 
-    
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function ModuleListItem({module, moduleCard, modules, setModules, moduleCards, setModuleCards}) {
 
     const [moduleCardFile, setModuleCardFile] = useState(null);
@@ -23,7 +24,7 @@ function ModuleListItem({module, moduleCard, modules, setModules, moduleCards, s
     const [error, setError] = useState("");
 
     const fetchModuleCards = async() => {
-        const moduleCardsResponse = await axios.get('moduleCards');
+        const moduleCardsResponse = await axios.get(`${baseUrl}/moduleCards`);
         const fetchedLogs = moduleCardsResponse.data;
         setModuleCards(fetchedLogs);
     };
@@ -58,7 +59,7 @@ function ModuleListItem({module, moduleCard, modules, setModules, moduleCards, s
                         jsonData.permission[i].target = module._id;
                     }
                     console.log(jsonData);
-                    const response2 = await axios.post('moduleCards', jsonData);
+                    const response2 = await axios.post(`${baseUrl}/moduleCards`, jsonData);
                     if (response2.status === 200) {
                         setUploadSuccess(true);
                         fetchModuleCards();

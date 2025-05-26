@@ -4,6 +4,7 @@ import { Select, FormControl, InputLabel, MenuItem, Button, Alert, Box } from '@
 import axios from 'axios';
 import PublishIcon from '@mui/icons-material/Publish';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
 
 function Deployment({ manifests, setManifests }) {
     const [selectedManifestId, setSelectedManifestId] = useState('');
@@ -27,7 +28,7 @@ function Deployment({ manifests, setManifests }) {
         const payload = { id: selectedManifestId }; // Set moduleId to selectedManifestId
 
         try {
-            const response = await axios.post(`file/manifest/${selectedManifestId}`, payload);
+            const response = await axios.post(`${baseUrl}/file/manifest/${selectedManifestId}`, payload);
             console.log("Deployment successful:", response.data);
             setIsSubmitted(true);
             setError(null); // Clear any existing error
@@ -56,7 +57,7 @@ function Deployment({ manifests, setManifests }) {
     // Fetch the list of manifests
     const fetchManifests = async () => {
         try {
-            const response = await axios.get('file/manifest');
+            const response = await axios.get(`${baseUrl}/file/manifest`);
             const newManifests = response.data; 
             updateManifestsList(newManifests);
         } catch (error) {

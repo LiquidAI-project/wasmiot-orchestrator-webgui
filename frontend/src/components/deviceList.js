@@ -10,6 +10,8 @@ import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function DeviceList({devices, setDevices}) {
 
     const Device = styled(Paper)(({ theme }) => ({
@@ -23,7 +25,7 @@ function DeviceList({devices, setDevices}) {
     // Function to fetch devices from the backend periodically
     const fetchDevices = async () => {
         try {
-        const response = await axios.get('file/device');
+        const response = await axios.get(`${baseUrl}/file/device`);
         const newDevices = response.data; // Assuming the data is a list of device objects with name and _id
         updateDevicesList(newDevices);
         } catch (error) {

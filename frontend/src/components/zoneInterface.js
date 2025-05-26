@@ -6,6 +6,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PublishIcon from '@mui/icons-material/Publish';
 import axios from 'axios';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function ZoneInterface({ zonesAndRiskLevels, setZonesAndRiskLevels }) {
     const [error, setError] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -24,7 +26,7 @@ function ZoneInterface({ zonesAndRiskLevels, setZonesAndRiskLevels }) {
 
     const fetchZoneRiskLevels = async () => {
         try {
-            const response = await axios.get('zoneRiskLevels');
+            const response = await axios.get(`${baseUrl}/zoneRiskLevels`);
             setZonesAndRiskLevels(response.data);
         } catch (error) {
             console.error('Error fetching zones and risk levels:', error);
@@ -42,7 +44,7 @@ function ZoneInterface({ zonesAndRiskLevels, setZonesAndRiskLevels }) {
         reader.onload = async (event) => {
             try {
                 const jsonData = JSON.parse(event.target.result);
-                const response = await axios.post('zoneRiskLevels', jsonData);
+                const response = await axios.post(`${baseUrl}/zoneRiskLevels`, jsonData);
                 if (response.status === 200) {
                     setIsSubmitted(true);
                     setError("");

@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { Box, Button, Alert } from '@mui/material';
 import axios from 'axios';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function ResetDeviceDiscoveryButton() {
     const [statusMessage, setStatusMessage] = useState(null);
     const [alertSeverity, setAlertSeverity] = useState('');
 
     const handleResetDeviceDiscovery = async () => {
         try {
-            const response = await axios.post('file/device/discovery/reset');
+            const response = await axios.post(`${baseUrl}/file/device/discovery/reset`);
 
             // Success response
             setStatusMessage('Device discovery reset successfully.');

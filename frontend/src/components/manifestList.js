@@ -11,6 +11,7 @@ import {fetchManifests, handleManifestDelete} from '../utils';
 import axios from 'axios';
 import Divider from '@mui/material/Divider';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
 
 function ManifestList({
     manifests, setManifests, devices, setDevices, modules, setModules
@@ -19,7 +20,7 @@ function ManifestList({
     const [validationLogs, setValidationLogs] = useState([]);
 
     const updateValidationLogs = async() => {
-        const validationLogsResponse = await axios.get('deploymentCertificates');
+        const validationLogsResponse = await axios.get(`${baseUrl}/deploymentCertificates`);
         const fetchedLogs = validationLogsResponse.data;
         setValidationLogs(fetchedLogs);
     };

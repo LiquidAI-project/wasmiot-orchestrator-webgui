@@ -6,6 +6,7 @@ import FormData from 'form-data';
 import {fetchManifests} from '../utils';
 import SendIcon from '@mui/icons-material/Send';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
 
 function Execution({ manifests, setManifests, module, setModules, selectedDeployment, setSelectedDeployment }) {
     const [selectedManifestId, setSelectedManifestId] = useState('');
@@ -77,7 +78,7 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
         }
     
         try {
-            const execResponse = await axios.post(`execute/${selectedManifestId}`, formData, {
+            const execResponse = await axios.post(`${baseUrl}/execute/${selectedManifestId}`, formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
     

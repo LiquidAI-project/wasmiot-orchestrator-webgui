@@ -18,7 +18,8 @@ import { Alert } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 
- 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function NodeWithModal({ data, id }) {
 
   const [deviceDetails, setDeviceDetails] = useState(data.deviceDetails || {});
@@ -75,7 +76,7 @@ function NodeWithModal({ data, id }) {
 
   const fetchNodeCards = async () => {
     try {
-      const response = await axios.get('nodeCards');
+      const response = await axios.get(`${baseUrl}/nodeCards`);
       return response.data;
     } catch (error) {
         console.error('Error fetching zones and risk levels:', error);
@@ -99,7 +100,7 @@ function NodeWithModal({ data, id }) {
 
   const fetchDataSourceCards = async () => {
     try {
-      const response = await axios.get('dataSourceCards');
+      const response = await axios.get(`${baseUrl}/dataSourceCards`);
       return response.data;
     } catch (e) {
       console.error('Error fetching datasource cards', e);
@@ -136,7 +137,7 @@ function NodeWithModal({ data, id }) {
         for (let i = 0; i < jsonData.asset.length; i++){
           jsonData.asset[i].uid = deviceId;
         }
-        const response = await axios.post('nodeCards', jsonData);
+        const response = await axios.post(`${baseUrl}/nodeCards`, jsonData);
         if (response.status === 200) {
           setNodeCardError("");
           setNodeCardUploadSuccess(true);
@@ -174,7 +175,7 @@ function NodeWithModal({ data, id }) {
             }
           }
         }
-        const response = await axios.post('dataSourceCards', jsonData);
+        const response = await axios.post(`${baseUrl}/dataSourceCards`, jsonData);
         if (response.status === 200) {
           setDataSourceCardError("");
           setDataSourceCardUploadSuccess(true);

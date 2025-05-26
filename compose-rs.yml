@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: rs.Dockerfile
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - PORT=${PORT}
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+
+networks:
+  default:
+    name: wasmiot-net
+    driver: bridge
+    external: true

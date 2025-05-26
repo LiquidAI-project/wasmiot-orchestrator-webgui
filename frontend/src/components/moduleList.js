@@ -12,13 +12,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModuleListItem from './moduleListItem';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
 
 function ModuleList({modules, setModules}) {
 
     const [moduleCards, setModuleCards] = useState([]);
 
     const fetchModuleCards = async() => {
-        const moduleCardsResponse = await axios.get('moduleCards');
+        const moduleCardsResponse = await axios.get(`${baseUrl}/moduleCards`);
         const fetchedLogs = moduleCardsResponse.data;
         setModuleCards(fetchedLogs);
     };

@@ -21,6 +21,8 @@ import {
 // Miscellaneous imports
 import axios from 'axios';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function ModuleDescription({
     moduleId, setModuleId, 
     modules, setModules,
@@ -46,7 +48,7 @@ function ModuleDescription({
 
         const fetchModuleDescription = async () => {
             try {
-                const response = await axios.get(`file/module/${selectedModuleId}`);
+                const response = await axios.get(`${baseUrl}/file/module/${selectedModuleId}`);
                 setModuleDescription(response.data[0]);
                 setModuleName(response.data[0]?.name || ''); // Update the module name
                 console.log("Fetched module description:", response.data[0]);
@@ -207,7 +209,7 @@ function ModuleDescription({
         });
 
         try {
-            const response = await axios.post(`file/module/${selectedModuleId}/upload`, formData, {
+            const response = await axios.post(`${baseUrl}/file/module/${selectedModuleId}/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             console.log("Form submitted successfully:", response.data);

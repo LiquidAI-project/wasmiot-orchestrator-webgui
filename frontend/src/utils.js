@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Position, MarkerType } from '@xyflow/react';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
 
 // Update the list of manifests
 export const updateManifestsList = (newManifests, setManifests) => {
@@ -20,7 +21,7 @@ export const updateManifestsList = (newManifests, setManifests) => {
 // Fetch the list of manifests
 export const fetchManifests = async (setManifests) => {
     try {
-        const response = await axios.get('file/manifest');
+        const response = await axios.get(`${baseUrl}/file/manifest`);
         const newManifests = response.data; 
         updateManifestsList(newManifests, setManifests);
     } catch (error) {
@@ -31,7 +32,7 @@ export const fetchManifests = async (setManifests) => {
 // Function to handle deletion of a manifest
 export const handleManifestDelete = async (manifestId) => {
     try {
-        const response = await axios.delete(`file/manifest/${manifestId}`);
+        const response = await axios.delete(`${baseUrl}/file/manifest/${manifestId}`);
         console.log(`Deleted manifest with id: ${manifestId}`, response.data);
     } catch (error) {
         console.error(`Error deleting manifest with id: ${manifestId}`, error);
@@ -43,7 +44,7 @@ export const handleManifestDelete = async (manifestId) => {
 // Also gets related metadata cards
 export const fetchDevices = async (setDevices) => {
     try {
-        const response = await axios.get('file/device');
+        const response = await axios.get(`${baseUrl}/file/device`);
         const newDevices = response.data; // Assuming the data is a list of device objects with name and _id
         // TODO: Get metadata cards here
         let metadataCards = []
@@ -79,7 +80,7 @@ export const updateDevicesList = (newDevices, setDevices) => {
 // Fetches the list of modules from orchestrator
 export const fetchModules = async (setModules) => {
   try {
-      const response = await axios.get('file/module');
+      const response = await axios.get(`${baseUrl}/file/module`);
       const newModules = response.data; 
       updateModulesList(newModules, setModules);
   } catch (error) {
@@ -105,7 +106,7 @@ export const updateModulesList = (newModules, setModules) => {
 // Function to delete a module
 export const handleModuleDelete = async (moduleId, setModules) => {
   try {
-      const response = await axios.delete(`file/module/${moduleId}`);
+      const response = await axios.delete(`${baseUrl}/file/module/${moduleId}`);
       console.log(`Deleted module with id: ${moduleId}`, response.data);
   } catch (error) {
       console.error(`Error deleting module with id: ${moduleId}`, error);

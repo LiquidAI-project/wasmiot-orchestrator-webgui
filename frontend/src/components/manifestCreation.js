@@ -4,6 +4,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import {fetchModules, fetchManifests} from '../utils';
 
+const baseUrl = process.env.REACT_APP_API_URL ?? '';
+
 function ManifestCreation({ devices, setDevices, modules, setModules, manifests, setManifests }) {
     const [manifestName, setManifestName] = useState('');
     const [procedures, setProcedures] = useState([{ device: '', module: '', func: '' }]);
@@ -77,11 +79,11 @@ function ManifestCreation({ devices, setDevices, modules, setModules, manifests,
         const payload = { name: manifestName, sequence };
 
         try {
-            const response = await axios.post('file/manifest', payload);
+            const response = await axios.post(`${baseUrl}/file/manifest`, payload);
             const manifestId = response.data;
             fetchManifests(setManifests);
             
-            const validationLogsResponse = await axios.get('deploymentCertificates');
+            const validationLogsResponse = await axios.get(`${baseUrl}/deploymentCertificates`);
             const validationLogs = validationLogsResponse.data;
             let certificate = validationLogs.find(log => log.deploymentId === manifestId);
 
