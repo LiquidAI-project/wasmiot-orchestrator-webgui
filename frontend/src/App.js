@@ -129,8 +129,6 @@ export default function App() {
                 <Divider textAlign="center"><b>View controls</b></Divider>
                 <OpacitySlider backgroundOpacity={backgroundOpacity} setBackgroundOpacity={setBackgroundOpacity}/>
                 <BackgroundUpdater backgroundUrl={backgroundUrl} setBackgroundUrl={setBackgroundUrl}/>
-                <Divider textAlign='center'><b>Zones and risk levels</b></Divider>
-                <ZoneInterface zonesAndRiskLevels={zonesAndRiskLevels} setZonesAndRiskLevels={setZonesAndRiskLevels}/>
                 <Divider textAlign="center"><b>Actions</b></Divider>
                 <ResetDeviceDiscoveryButton />
                 <DeleteAllDevicesButton />
