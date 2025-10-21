@@ -44,3 +44,6 @@ frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
 frontend-server/target
+
+frontend/.env
+.env

@@ -72,7 +72,7 @@ function DeviceMap({
                 };
                 if (devices[i].name !== "orchestrator"){
                     newDevice.cpuName = devices[i].description.platform.cpu.humanReadableName
-                    newDevice.cpuSpeed = `${(devices[i].description.platform.cpu.clockSpeed.Hz / 1000000000).toFixed(2)} Ghz`
+                    newDevice.cpuSpeed = `${(devices[i].description.platform.cpu.clockSpeedHz / 1000000000).toFixed(2)} Ghz`
                     newDevice.cpuUsage = `${(devices[i].health.report.cpuUsage).toFixed(2)}`
                     newDevice.memory = `${(devices[i].description.platform.memory.bytes / 1000000000).toFixed(2)} Gbs`
                 } else {
