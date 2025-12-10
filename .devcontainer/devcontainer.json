@@ -1,0 +1,39 @@
+{
+  "name": "Webgui dev",
+
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "NODE_VERSION": "22"
+    }
+  },
+
+  "runArgs": [
+    "--network=wasmiot-net"
+  ],
+
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  "forwardPorts": [3000, 5173, 8000],
+
+  "portsAttributes": {
+    "3000": { "label": "Webgui dev", "onAutoForward": "openBrowser" },
+    "8000": { "label": "Webgui dev", "onAutoForward": "openBrowser" }
+  },
+
+  "postCreateCommand": "if [ -f package.json ]; then npm install; fi && if [ -d frontend ] && [ -f frontend/package.json ]; then cd frontend && npm install; fi",
+
+  "remoteUser": "node",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  }
+}

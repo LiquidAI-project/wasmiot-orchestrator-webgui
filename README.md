@@ -1,5 +1,7 @@
 ## About 
-User interface for the orchestrator. Works for both the original javascript version (https://github.com/LiquidAI-project/wasmiot-orchestrator) and the rust port (https://github.com/LiquidAI-project/orchestrator-rust-port). Requires the orchestrator to be running for this to be functional. 
+User interface for the orchestrator. Works partially for both the original javascript version (https://github.com/LiquidAI-project/wasmiot-orchestrator) and the rust port (https://github.com/LiquidAI-project/orchestrator-rust-port). Requires the orchestrator to be running for this to be functional. 
+
+The newest versions are compatible with only the rust orchestrator. For the original javascript orchestrator, last commit that is likely to work for it is [`ed4f017`](https://github.com/LiquidAI-project/wasmiot-orchestrator-webgui/commit/ed4f0174e2beb80c74d50a3d0bb55660c77aa0c6).
 
 When should you use this repository?
 - You are using the original javascript version of the orchestrator

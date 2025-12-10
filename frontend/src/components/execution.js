@@ -10,16 +10,15 @@ const baseUrl = process.env.REACT_APP_API_URL ?? '';
 
 // ----- Helper functions -----
 
-// Get the node object for a given device ID from the selected deployment
-function getNodeForDevice(selectedDeployment, deviceId) {
+function getFullSequence(selectedDeployment) {
     const full = selectedDeployment?.fullManifest || selectedDeployment?.full_manifest;
-    if (!full) return null;
-    const did = String(deviceId);
-    return full[did] || null;
+    const seq = full?.sequence;
+    return Array.isArray(seq) ? seq : [];
 }
 
+
 // Fetch the latest successful step result from the supervisor's /request-history
-async function fetchLatestStepResult(supervisorBaseUrl, deploymentId, moduleName, funcName) {
+async function fetchLatestStepResult(supervisorBaseUrl, deploymentId, moduleName, funcName, stepIndex) {
     if (!supervisorBaseUrl) throw new Error('no supervisor base url');
     const base = supervisorBaseUrl.replace(/\/+$/, '');
     const url = `${base}/request-history`;
@@ -31,6 +30,7 @@ async function fetchLatestStepResult(supervisorBaseUrl, deploymentId, moduleName
             e?.deployment_id === String(deploymentId) &&
             e?.module_name === moduleName &&
             e?.function_name === funcName &&
+            e?.step_index === stepIndex &&
             e?.success === true
         )
         .sort((a, b) => new Date(b.work_queued_at) - new Date(a.work_queued_at));
@@ -45,52 +45,72 @@ async function fetchLatestStepResult(supervisorBaseUrl, deploymentId, moduleName
         raw: latest,
     };
 }
-
 // Build a map of module ID to module name from the selected deployment
 function buildModuleNameMap(selectedDeployment) {
     const map = {};
-    const full = selectedDeployment?.fullManifest || selectedDeployment?.full_manifest;
-    if (!full) return map;
-    for (const key of Object.keys(full)) {
-        const node = full[key];
-        const modules = node?.modules || [];
-        for (const m of modules) {
-            if (m?.id && m?.name) map[String(m.id)] = m.name;
+    const seq = getFullSequence(selectedDeployment);
+
+    for (const step of seq) {
+        const id = step?.module?.id;
+        const name = step?.module?.name;
+        if (id && name) {
+            map[String(id)] = name;
         }
     }
     return map;
 }
 
+
+function findFullStep(selectedDeployment, deviceId, moduleName, funcName) {
+    const deviceStr = String(deviceId);
+    const seq = getFullSequence(selectedDeployment);
+
+    return (
+        seq.find(step => {
+            const stepDevice = String(step.deviceId ?? step.device_id ?? '');
+            const stepModuleName = step.module?.name;
+            const stepFuncName = step.function ?? step.func;
+
+            return (
+                stepDevice === deviceStr &&
+                stepModuleName === moduleName &&
+                stepFuncName === funcName
+            );
+        }) || null
+    );
+}
+
+
+
 // Get output mounts for a specific step of a deployment
 function getOutputMountsForStep(selectedDeployment, deviceId, moduleName, funcName) {
-    const node = getNodeForDevice(selectedDeployment, deviceId);
-    const mounts = node?.mounts || {};
-    const perModule = mounts[moduleName] || {};
-    const perFunc = perModule[funcName] || null;
-    const outputs = perFunc?.output || [];
+    const step = findFullStep(selectedDeployment, deviceId, moduleName, funcName);
+    const outputs = step?.mounts?.output || [];
+
     return outputs.map(o => ({
         path: o.path,
-        mediaType: o.media_type,
+        mediaType: o.media_type ?? o.mediaType ?? '',
         stage: o.stage ?? null,
     }));
 }
 
+
 // Get the supervisor base URL for a specific step of a deployment
 function getSupervisorBaseUrl(selectedDeployment, deviceId, moduleName, funcName) {
-    const node = getNodeForDevice(selectedDeployment, deviceId);
-    const endpoints = node?.endpoints || {};
-    const mod = endpoints[moduleName] || {};
-    const ep = mod[funcName] || null;
-    return ep?.url || null;
+    const step = findFullStep(selectedDeployment, deviceId, moduleName, funcName);
+    return step?.endpoint?.url || null;
 }
 
 
+
 // Build a candidate URL to the output file using: /module_results/{module_name}/{filename}
-function buildOutputUrl(supervisorBaseUrl, moduleName, filename) {
+function buildOutputUrl(supervisorBaseUrl, deploymentId, moduleId, filename) {
     if (!supervisorBaseUrl) return null;
+    const base = supervisorBaseUrl.replace(/\/+$/, '');
+    const safeDep = encodeURIComponent(String(deploymentId));
+    const safeMod = encodeURIComponent(String(moduleId));
     const safeName = encodeURIComponent(filename);
-    const safeMod = encodeURIComponent(moduleName);
-    return `${supervisorBaseUrl.replace(/\/+$/, '')}/module_results/${safeMod}/${safeName}`;
+    return `${base}/module_results/${safeDep}/${safeMod}/${safeName}`;
 }
 
 // Placeholder for potential base URL overrides. Maybe needed later for non-linux platforms,
@@ -139,6 +159,7 @@ function StepsView({ selectedDeployment, intermediateResults }) {
     if (!selectedDeployment?.sequence?.length) return null;
 
     const moduleNameMap = buildModuleNameMap(selectedDeployment);
+    const deploymentId = selectedDeployment?._id || selectedDeployment?.id;
 
     return (
         <Box sx={{ mt: 2 }}>
@@ -183,7 +204,7 @@ function StepsView({ selectedDeployment, intermediateResults }) {
                                     <em>outputs:</em>
                                     <ul>
                                         {outMounts.map((m, i) => {
-                                            const url = buildOutputUrl(baseUrl, moduleName, m.path);
+                                            const url = buildOutputUrl(baseUrl, deploymentId, moduleId, m.path);
                                             const cacheKey = perStep?.requestId || Date.now(); // fallback if missing
                                             const urlWithCb = url ? `${url}${url.includes('?') ? '&' : '?'}cb=${cacheKey}` : null;
                                             return (
@@ -220,12 +241,11 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
 
     async function collectIntermediaryResults(deploymentId, deploymentObj) {
         try {
-            if (!deploymentObj?.sequence?.length) return;
+            if (!deploymentObj?.sequence?.length) return {};
 
             const results = {};
             const moduleNameMap = buildModuleNameMap(deploymentObj);
 
-            // For each step, get the supervisors /request-history and pick latest match
             await Promise.all(
                 deploymentObj.sequence.map(async (step, idx) => {
                     const deviceId = step.device;
@@ -237,7 +257,7 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
                     const base = getBaseUrlOverride(baseRaw);
 
                     try {
-                        const latest = await fetchLatestStepResult(base, deploymentId, moduleName, funcName);
+                        const latest = await fetchLatestStepResult(base, deploymentId, moduleName, funcName, idx);
                         results[idx] = latest ?? null;
                     } catch (e) {
                         results[idx] = null;
@@ -245,12 +265,14 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
                 })
             );
 
-
             setIntermediateResults(results);
+            return results;
         } catch (e) {
             console.warn('collectIntermediaryResults failed:', e);
+            return {};
         }
     }
+
 
 
     // Filter manifests to show only active ones
@@ -272,24 +294,20 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
         const result = manifests.find(manifest => manifest._id === manifestId) || null;
         setSelectedDeployment(result);
 
-        if (!result?.sequence?.length) return;
+        const full = result?.fullManifest || result?.full_manifest;
+        const seq = full?.sequence;
 
-        const full = result.fullManifest || result.full_manifest;
-        const rootKey = full && Object.keys(full)[0];
-        const node = (rootKey && full[rootKey]) || null;
-        const moduleId = result.sequence[0].module;
-        const moduleInfo = node?.modules?.find(m => m.id === moduleId);
+        if (!Array.isArray(seq) || !seq.length) {
+            return;
+        }
 
-        if (!moduleInfo) return;
+        const firstStep = seq[0];
 
-        const moduleName = moduleInfo.name;
-        const ep = node?.endpoints?.[moduleName];
-        if (!ep) return;
+        const funcName = firstStep.function || 'step0';
 
-        const firstFnKey = Object.keys(ep)[0];
-        setParamsKey(`${manifestId}:${firstFnKey}`);  // new: remount key for params
-        const functionParams = ep[firstFnKey]?.request?.parameters;
-        setParameters(Array.isArray(functionParams) ? functionParams : []);
+        const functionParams = firstStep.endpoint?.request?.parameters;
+
+        setParamsKey(`${manifestId}:${funcName}`);
 
         setParameters(Array.isArray(functionParams) ? functionParams : []);
     };
@@ -347,15 +365,16 @@ function Execution({ manifests, setManifests, module, setModules, selectedDeploy
 
             // Collect per-step intermediary results from supervisors
             const depObj = activeManifests.find(m => m._id === selectedManifestId) || selectedDeployment;
-            await collectIntermediaryResults(selectedManifestId, depObj);
+            const perStepResults = await collectIntermediaryResults(selectedManifestId, depObj);
 
             // If the final result is null for some reason, use the last step’s own result
             if (overall == null && depObj?.sequence?.length) {
                 console.warn('Final result is null, falling back to last step result');
                 const lastIdx = depObj.sequence.length - 1;
-                const last = intermediateResults[lastIdx]?.result ?? null;
+                const last = perStepResults[lastIdx]?.result ?? null;
                 overall = last ?? null;
             }
+
 
             setExecutionResult(overall);
             setIsSubmitted(true);
