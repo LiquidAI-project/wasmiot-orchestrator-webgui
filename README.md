@@ -11,13 +11,17 @@ When should you not?
 - You are using the rust version of the orchestrator, and want to have the user interface on the same device as that.
 - You are using the test enviroment repository.
 
-## Configuration
+## How to run without docker (the easiest way)
 
-Change the values in .env file to reflect your setup. Change the `REACT_APP_API_URL` to whereever your orchestrator is running, for example "http://localhost:3000". If you are running this with node alone (check later sections), modify the value of "proxy" in package.json (in frontend folder) to point to orchestrator url, just like in the .env file.
+After cloning the repository, make sure you have installed npm. After that, copy the `./.env.example` file to the **frontend** folder, and modify the `REACT_APP_API_URL` to match your orchestrator address. Remove the comments from the `./frontend/.env` file also, as they sometimes cause issues. After that, modify the `./frontend/package.json` file, and change the line `proxy: "http://..."` to match your orchestrator address. After that, run `npm install`, and after the installation is finished, the webgui should work correctly when you run `npm start`. Note that this method uses the react development server which is not a very secure way to run this.
+
+## General configuration
+
+Change the values in .env file to reflect your setup. Change the `REACT_APP_API_URL` to whereever your orchestrator is running, for example "http://localhost:3000". If you are running this with node alone (check above sections), modify the value of "proxy" in package.json (in frontend folder) to point to orchestrator url, just like in the .env file.
 
 ## Run in docker:
 
-Easiest way to run this is in docker. First make sure you have a functioning docker installation (as well as docker compose). Then run one of the starting scripts depending on which orchestrator you are using. If you are using the original javascript version of the orchestrator, run `./start-docker-js.sh`. If you are using the rust version, run `./start-docker-rs.sh`.
+Easy way to run this is in docker. First make sure you have a functioning docker installation (as well as docker compose). Then run one of the starting scripts depending on which orchestrator you are using. If you are using the original javascript version of the orchestrator, run `./start-docker-js.sh`. If you are using the rust version, run `./start-docker-rs.sh`.
 
 ## Run without docker
 
